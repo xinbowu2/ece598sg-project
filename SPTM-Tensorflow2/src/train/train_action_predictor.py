@@ -3,27 +3,39 @@ import pdb
 
 print("IMPORTS COMPLETE")
 def data_generator():
-  game = doom_navigation_setup(DEFAULT_RANDOM_SEED, TRAIN_WAD)
-  game.set_doom_map(MAP_NAME_TEMPLATE % random.randint(MIN_RANDOM_TEXTURE_MAP_INDEX,
-                                                       MAX_RANDOM_TEXTURE_MAP_INDEX))
-  game.new_episode()
+  config = habitat.get_config(config_paths='../configs/tasks/pointnav_gibson.yaml')
+  config.defrost()
+  config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
+  config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
+  config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR', 'DEPTH_SENSOR']
+  config.SIMULATOR.TURN_ANGLE = 30
+  config.freeze()
+
+  env = habitat.Env(config=config)
+
+  action_mapping = {
+      0: 'stop',
+      1: 'move_forward',
+      2: 'turn left',
+      3: 'turn right'
+  }
+
+  current_x = env.reset()
   yield_count = 0
-  pdb.set_trace()
   while True:
     if yield_count >= ACTION_MAX_YIELD_COUNT_BEFORE_RESTART:
-      game.set_doom_map(MAP_NAME_TEMPLATE % random.randint(MIN_RANDOM_TEXTURE_MAP_INDEX,
-                                                           MAX_RANDOM_TEXTURE_MAP_INDEX))
-      game.new_episode()
+      current_observation = env.reset()
       yield_count = 0
     x = []
     y = []
     for _ in xrange(MAX_CONTINUOUS_PLAY):
-      current_x = game.get_state().screen_buffer.transpose(VIZDOOM_TO_TF)
+      #current_x = game.get_state().screen_buffer.transpose(VIZDOOM_TO_TF)
       action_index = random.randint(0, ACTION_CLASSES - 1)
-      game_make_action_wrapper(game, ACTIONS_LIST[action_index], TRAIN_REPEAT)
+      # game_make_action_wrapper(game, ACTIONS_LIST[action_index], TRAIN_REPEAT)
       current_y = action_index
       x.append(current_x)
       y.append(current_y)
+      current_x = env.step(action_index)
     first_second_pairs = []
     current_first = 0
     while True:
