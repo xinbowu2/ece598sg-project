@@ -3,6 +3,7 @@ import pdb
 
 print("IMPORTS COMPLETE")
 def data_generator():
+  pdb.set_trace()
   config = habitat.get_config(config_paths='../configs/tasks/pointnav_gibson.yaml')
   config.defrost()
   config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
@@ -70,7 +71,7 @@ if __name__ == '__main__':
   logs_path, current_model_path = setup_training_paths(EXPERIMENT_OUTPUT_FOLDER)
   print(logs_path, current_model_path)
   #model = ACTION_NETWORK(((1 + ACTION_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), ACTION_CLASSES)
-  model = resnet(ACTION_CLASSES)
+  model = ResNet18(4)
   adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
   model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
   callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
