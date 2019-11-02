@@ -2,7 +2,9 @@
 import os
 import os.path
 
-import common.siamese_resnet as resnet
+from common.resnet18 import ResNet18
+from common.siamese_resnet import SiameseResnet
+
 from common.register_test_setups import (register_test_setups, DATA_PATH)
 
 def get_from_env(name, type, default):
@@ -93,12 +95,10 @@ ACTION_MAX_YIELD_COUNT_BEFORE_RESTART = int(20 * 100 * 64 / BATCH_SIZE)
 #testing
 TEST_REPEAT = TRAIN_REPEAT
 #JOINT_NETWORK = resnet.ResnetBuilder.build_resnet_18
-JOINT_NETWORK = resnet.
-
-SIAMESE_NETWORK = resnet.ResnetBuilder.build_siamese_resnet_18
-PIXEL_COMPARISON_NETWORK = resnet.ResnetBuilder.build_pixel_comparison_network
-EDGE_NETWORK = eval(EDGE_ARCHITECTURE)
-ACTION_NETWORK = resnet.ResnetBuilder.build_resnet_18
+# SIAMESE_NETWORK = resnet.ResnetBuilder.build_siamese_resnet_18
+# PIXEL_COMPARISON_NETWORK = resnet.ResnetBuilder.build_pixel_comparison_network
+# EDGE_NETWORK = eval(EDGE_ARCHITECTURE)
+# ACTION_NETWORK = resnet.ResnetBuilder.build_resnet_18
 DEEP_NET_ACTIONS = 1
 GOAL_DISTANCE_ALLOWANCE = 63
 TESTING_BATCH_SIZE = 1024

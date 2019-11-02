@@ -3,17 +3,7 @@ import sys
 # limit memory usage
 #sys.path.append('common')
 from common import *
-#import tensorflow as tf
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
-#from keras.backend.tensorflow_backend import set_session
-import pdb
-#pdb.set_trace()
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = TRAIN_MEMORY_FRACTION
-#set_session(tf.Session(config=config))
-session = tf.Session(config=config)
-tf.keras.backend.set_session(session)
+import tensorflow as tf
 
 def setup_training_paths(experiment_id):
   experiment_path = EXPERIMENTS_PATH_TEMPLATE % experiment_id

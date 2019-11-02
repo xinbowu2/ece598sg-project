@@ -1,7 +1,7 @@
 import tensorflow as tf
-from config import NUM_CLASSES
 from common.residual_block import build_res_block_1
 
+NUM_CLASSES=2
 class ResNet18(tf.keras.Model):
 
     def __init__(self, num_classes=NUM_CLASSES):

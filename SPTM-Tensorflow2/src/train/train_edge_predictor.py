@@ -1,6 +1,7 @@
-from train_setup import *
-
+from train.train_setup import *
+import pdb
 def data_generator():
+  pdb.set_trace()
   game = doom_navigation_setup(DEFAULT_RANDOM_SEED, TRAIN_WAD)
   while True:
     x_result = []
@@ -62,16 +63,17 @@ def data_generator():
       from_index = batch_index * BATCH_SIZE
       to_index = (batch_index + 1) * BATCH_SIZE
       yield (np.array(x_result[from_index:to_index]),
-             keras.utils.to_categorical(np.array(y_result[from_index:to_index]),
+             tf.keras.utils.to_categorical(np.array(y_result[from_index:to_index]),
                                         num_classes=EDGE_CLASSES))
 
 if __name__ == '__main__':
   logs_path, current_model_path = setup_training_paths(EXPERIMENT_OUTPUT_FOLDER)
-  model = EDGE_NETWORK(((1 + EDGE_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), EDGE_CLASSES)
-  adam = keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+  model = SiameseResnet(EDGE_CLASSES)
+  #model = EDGE_NETWORK(((1 + EDGE_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), EDGE_CLASSES)
+  adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
   model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
-  callbacks_list = [keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
-                    keras.callbacks.ModelCheckpoint(current_model_path,
+  callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
+                    tf.keras.callbacks.ModelCheckpoint(current_model_path,
                                                     period=MODEL_CHECKPOINT_PERIOD)]
   model.fit_generator(data_generator(),
                       steps_per_epoch=DUMP_AFTER_BATCHES,
