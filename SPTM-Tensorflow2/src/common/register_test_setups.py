@@ -1,4 +1,4 @@
-DATA_PATH = '../../data/'
+DATA_PATH = '../data/'
 
 class TestSetup:
   def __init__(self,
