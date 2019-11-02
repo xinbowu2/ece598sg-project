@@ -7,7 +7,7 @@ def data_generator():
   config.defrost()
   config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
   config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
-  config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR', 'DEPTH_SENSOR']
+  config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR']
   config.SIMULATOR.TURN_ANGLE = 30
   config.freeze()
 
@@ -28,9 +28,9 @@ def data_generator():
       yield_count = 0
     x = []
     y = []
-    for _ in xrange(MAX_CONTINUOUS_PLAY):
+    for _ in range(MAX_CONTINUOUS_PLAY):
       #current_x = game.get_state().screen_buffer.transpose(VIZDOOM_TO_TF)
-      action_index = random.randint(0, ACTION_CLASSES - 1)
+      action_index = random.randint(1, ACTION_CLASSES - 1)
       # game_make_action_wrapper(game, ACTIONS_LIST[action_index], TRAIN_REPEAT)
       current_y = action_index
       x.append(current_x)
@@ -60,7 +60,7 @@ def data_generator():
       if len(x_result) == BATCH_SIZE:
         yield_count += 1
         yield (np.array(x_result),
-               keras.utils.to_categorical(np.array(y_result),
+               tf.keras.utils.to_categorical(np.array(y_result),
                                           num_classes=ACTION_CLASSES))
         x_result = []
         y_result = []
@@ -69,11 +69,12 @@ if __name__ == '__main__':
   print("HELLOOOO")
   logs_path, current_model_path = setup_training_paths(EXPERIMENT_OUTPUT_FOLDER)
   print(logs_path, current_model_path)
-  model = ACTION_NETWORK(((1 + ACTION_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), ACTION_CLASSES)
-  adam = keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+  #model = ACTION_NETWORK(((1 + ACTION_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), ACTION_CLASSES)
+  model = resnet(ACTION_CLASSES)
+  adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
   model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
-  callbacks_list = [keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
-                    keras.callbacks.ModelCheckpoint(current_model_path,
+  callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
+                    tf.keras.callbacks.ModelCheckpoint(current_model_path,
                                                     period=MODEL_CHECKPOINT_PERIOD)]
   model.fit_generator(data_generator(),
                       steps_per_epoch=DUMP_AFTER_BATCHES,
