@@ -14,16 +14,23 @@ class SiameseResnet(tf.keras.Model):
 
         self.bn = tf.keras.layers.BatchNormalization()
         
-        self.fc1 = tf.keras.layers.Dense(units=NUM_EMBEDDING)
+        self.fc1 = tf.keras.layers.Dense(units=NUM_EMBEDDING,
+                                         kernel_initializer='he_normal')
         self.bn1 = tf.keras.layers.BatchNormalization()
         
-        self.fc2 = tf.keras.layers.Dense(units=NUM_EMBEDDING)
+        self.fc2 = tf.keras.layers.Dense(units=NUM_EMBEDDING,
+                                         kernel_initializer='he_normal')
         self.bn2 = tf.keras.layers.BatchNormalization()
         
-        self.fc3 = tf.keras.layers.Dense(units=NUM_EMBEDDING)
+        self.fc3 = tf.keras.layers.Dense(units=NUM_EMBEDDING,
+                                         kernel_initializer='he_normal')
         self.bn3 = tf.keras.layers.BatchNormalization()
+
+        self.fc4 = tf.keras.layers.Dense(units=NUM_EMBEDDING,
+                                         kernel_initializer='he_normal')
+        self.bn4 = tf.keras.layers.BatchNormalization()
         
-        self.fc4 = tf.keras.layers.Dense(units=num_classes, activation=tf.keras.activations.softmax)
+        self.fc5 = tf.keras.layers.Dense(units=num_classes, activation=tf.keras.activations.softmax, kernel_initializer='he_normal'))
 
     def call(self, inputs, training=None, mask=None):
         first_branch = self.res(inputs[:,:,:,:3])
@@ -46,6 +53,10 @@ class SiameseResnet(tf.keras.Model):
         x = self.bn3(x)
         x = tf.nn.relu(x)
 
-        x = self.fc4(x)        
+        x = self.fc4(x)
+        x = self.bn4(x)
+        x = tf.nn.relu(x)
+
+        x = self.fc5(x)        
 
         return x

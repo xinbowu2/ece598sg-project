@@ -3,17 +3,22 @@ import tensorflow as tf
 
 class BasicBlock(tf.keras.layers.Layer):
 
-    def __init__(self, filter_num, stride=1):
+    def __init__(self, filter_num, stride=1, is_first_block_of_first_layer=False):
         super(BasicBlock, self).__init__()
         self.conv1 = tf.keras.layers.Conv2D(filters=filter_num,
                                             kernel_size=(3, 3),
                                             strides=stride,
-                                            padding="same")
+                                            padding="same",
+                                            kernel_initializer="he_normal",
+                                            kernel_regularizer=tf.keras.regularizers.l2(l=1e-4))
+
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.conv2 = tf.keras.layers.Conv2D(filters=filter_num,
                                             kernel_size=(3, 3),
                                             strides=1,
-                                            padding="same")
+                                            padding="same",
+                                            kernel_initializer="he_normal",
+                                            kernel_regularizer=tf.keras.regularizers.l2(l=1e-4))
         self.bn2 = tf.keras.layers.BatchNormalization()
         if stride != 1:
             self.downsample = tf.keras.Sequential()
