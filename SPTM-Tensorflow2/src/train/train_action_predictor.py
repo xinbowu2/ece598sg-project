@@ -1,17 +1,15 @@
 from train.train_setup import *
 import pdb
-
+import habitat
 print("IMPORTS COMPLETE")
 def data_generator():
-  pdb.set_trace()
-  config = habitat.get_config(config_paths='../configs/tasks/pointnav_gibson.yaml')
-  config.defrost()
+  config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
+  config.defrost()	
   config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
   config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
   config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR']
   config.SIMULATOR.TURN_ANGLE = 30
   config.freeze()
-
   env = habitat.Env(config=config)
 
   action_mapping = {
@@ -21,11 +19,11 @@ def data_generator():
       3: 'turn right'
   }
 
-  current_x = env.reset()
+  current_x = env.reset()['rgb']
   yield_count = 0
   while True:
     if yield_count >= ACTION_MAX_YIELD_COUNT_BEFORE_RESTART:
-      current_observation = env.reset()
+      current_x = env.reset()['rgb']
       yield_count = 0
     x = []
     y = []
@@ -36,7 +34,7 @@ def data_generator():
       current_y = action_index
       x.append(current_x)
       y.append(current_y)
-      current_x = env.step(action_index)
+      current_x = env.step(action_index)['rgb']
     first_second_pairs = []
     current_first = 0
     while True:
@@ -58,6 +56,7 @@ def data_generator():
       current_y = y[first]
       x_result.append(np.concatenate((previous_x, current_x, future_x), axis=2))
       y_result.append(current_y)
+      pdb.set_trace()	
       if len(x_result) == BATCH_SIZE:
         yield_count += 1
         yield (np.array(x_result),

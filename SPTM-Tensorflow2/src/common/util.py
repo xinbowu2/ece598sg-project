@@ -4,7 +4,7 @@ import _pickle as cPickle
 #import cv2
 import numpy as np
 import h5py
-from vizdoom import *
+#from vizdoom import *
 import math
 import os
 import os.path
