@@ -72,7 +72,7 @@ def data_generator():
                                           num_classes=ACTION_CLASSES))
         x_result = []
         y_result = []
-      env.close()
+  env.close()
       
 if __name__ == '__main__':
   print("HELLOOOO")
