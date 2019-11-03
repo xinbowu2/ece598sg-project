@@ -3,19 +3,18 @@ import pdb
 import habitat
 print("IMPORTS COMPLETE")
 
-config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
-config.defrost()  
-config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
-config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
-config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
-config.SIMULATOR.TURN_ANGLE = 30
-#config.TASK.SENSORS = ["PROXIMITY_SENSOR"]
-config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
-config.freeze()
-env = habitat.Env(config=config)
 
 def data_generator():
-  global env
+  config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
+  config.defrost()  
+  config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
+  config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
+  config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
+  config.SIMULATOR.TURN_ANGLE = 30
+  #config.TASK.SENSORS = ["PROXIMITY_SENSOR"]
+  config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
+  config.freeze()
+  env = habitat.Env(config=config)
   action_mapping = {      
       0: 'move_forward',
       1: 'turn left',
@@ -73,7 +72,8 @@ def data_generator():
                                           num_classes=ACTION_CLASSES))
         x_result = []
         y_result = []
-
+      env.close()
+      
 if __name__ == '__main__':
   print("HELLOOOO")
   logs_path, current_model_path = setup_training_paths(EXPERIMENT_OUTPUT_FOLDER)
