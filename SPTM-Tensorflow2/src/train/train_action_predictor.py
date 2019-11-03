@@ -2,21 +2,25 @@ from train.train_setup import *
 import pdb
 import habitat
 print("IMPORTS COMPLETE")
+
+config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
+config.defrost()  
+config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
+config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
+config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
+config.SIMULATOR.TURN_ANGLE = 30
+#config.TASK.SENSORS = ["PROXIMITY_SENSOR"]
+config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
+config.freeze()
+env = habitat.Env(config=config)
+
 def data_generator():
-  config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
-  config.defrost()  
-  config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
-  config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
-  config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR']
-  config.SIMULATOR.TURN_ANGLE = 30
-  config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
-  config.freeze()
-  env = habitat.Env(config=config)
-  action_mapping = {
-      0: 'stop',
-      1: 'move_forward',
-      2: 'turn left',
-      3: 'turn right'
+  global env
+  action_mapping = {      
+      0: 'move_forward',
+      1: 'turn left',
+      2: 'turn right',
+      3: 'stop'
   }
 
   current_x = env.reset()['rgb']
@@ -29,7 +33,7 @@ def data_generator():
     y = []
     for _ in range(MAX_CONTINUOUS_PLAY):
       #current_x = game.get_state().screen_buffer.transpose(VIZDOOM_TO_TF)
-      action_index = random.randint(1, len(action_mapping)-1)
+      action_index = random.randint(0, len(action_mapping)-2)
       # game_make_action_wrapper(game, ACTIONS_LIST[action_index], TRAIN_REPEAT)
       current_y = action_index
       x.append(current_x)
@@ -45,7 +49,7 @@ def data_generator():
     while True:
       distance = random.randint(1, MAX_ACTION_DISTANCE)
       second = current_first + distance
-      if second >= MAX_CONTINUOUS_PLAY:
+      if second >= min(len(x), MAX_CONTINUOUS_PLAY):
         break
       first_second_pairs.append((current_first, second))
       current_first = second + 1
