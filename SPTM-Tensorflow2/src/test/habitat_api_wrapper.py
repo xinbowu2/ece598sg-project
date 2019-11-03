@@ -5,8 +5,10 @@ class HabitatWrapper:
   def __init__(self, config, action_mapping):
     self.env = habitat.Env(config=config)
     self.action_mapping = action_mapping
-    self.current_action_index = None
-    self.last_action_index = None
+    self.action_mapping.update({action_name : index for index, action_name in action_mapping.items()})
+
+    self.current_action = None
+    self.last_action = None
     self.game_state = GameState(self.env)
     self.is_episode_finished = False
 
@@ -18,25 +20,25 @@ class HabitatWrapper:
   def get_state(self):
     return self.game_state
 
-  def set_action(self, action_index):
-    if action_index in action_mapping.keys():
-      self.current_action_index = action_index
+  def set_action(self, action):
+    if action in action_mapping.keys():
+      self.current_action = action
     else:
-      raise error('Invalid action index: %s' % action_index)
+      raise error('Invalid action: %s' % action)
 
-  def advance_action(self, tic=1, update=True):
+  def advance_action(self, tics=1, update=True):
     if update:
-      if self.current_action_index != None:
-        observations = self.env.step(self.current_action_index)
+      if self.current_action != None:
+        observations = self.env.step(self.action_mapping[self.current_action])
         self.game_state.update(observations)
-        self.last_action_index = self.current_action_index
+        self.last_action = self.current_action
         self.is_episode_finished = self.env.episode_over()
 
   def is_episode_finished(self):
     return self.is_episode_finished
 
   def get_last_action(self):
-    return self.last_action_index
+    return self.last_action
 
   def replay_episode(self, lmp):
     raise NotImplementedError

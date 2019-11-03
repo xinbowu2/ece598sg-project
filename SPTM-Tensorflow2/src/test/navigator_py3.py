@@ -1,5 +1,4 @@
 from sptm import *
-#from habitat_api_wrapper import *
 
 def check_if_close(first_point, second_point):
   if ((first_point[0] - second_point[0]) ** 2 +
@@ -11,11 +10,8 @@ def check_if_close(first_point, second_point):
 class Navigator:
   def __init__(self, exploration_model_directory):
     self.exploration_model_directory = exploration_model_directory
-    #TO DO: load locomotion networks
     self.action_model = load_keras_model(3, len(ACTIONS_LIST), ACTION_MODEL_WEIGHTS_PATH)
-    #TO DO: load sptn memory
     self.memory = SPTM()
-
     self.trial_index = -1
     print 'Navigator ready!'
 
@@ -31,8 +27,8 @@ class Navigator:
     self.record_trajectories = True
     self.trajectory_plotter = TrajectoryPlotter(os.path.join(EVALUATION_PATH, trajectories_name), *box)
 
-  def common_setup(self, env):
-    self.env = env
+  def common_setup(self, game):
+    self.game = game
     self.screens = []
     self.coordinates = []
     self.steps = 0
@@ -41,19 +37,19 @@ class Navigator:
     self.record_video = False
     self.record_trajectories = False
 
-  def setup_exploration(self, step_budget, env, environment, box):
+  def setup_exploration(self, step_budget, game, environment, box):
     self.looking_for_goal = False
     self.step_budget = step_budget
-    self.common_setup(env)
+    self.common_setup(game)
     # self.setup_video('movie.mov')
     self.setup_trajectories(environment + '_exploration.pdf', box)
     self.goal_frame = None
 
-  def setup_navigation_test(self, step_budget, env, goal_location, keyframes, keyframe_coordinates, keyframe_actions, goal_frame, movie_path, box, environment):
+  def setup_navigation_test(self, step_budget, game, goal_location, keyframes, keyframe_coordinates, keyframe_actions, goal_frame, movie_path, box, environment):
     self.trial_index += 1
     self.looking_for_goal = True
     self.step_budget = step_budget
-    self.common_setup(env)
+    self.common_setup(game)
     self.goal_location = goal_location
     self.setup_video(movie_path)
     self.setup_trajectories(movie_path + '.pdf', box)
@@ -94,11 +90,8 @@ class Navigator:
     return self.steps
 
   def set_intermediate_reachable_goal(self):
-    #TO DO: current_screen = self.game.get_state().screen_buffer.transpose(VIZDOOM_TO_TF), need transpose?
-    current_screen = self.env.get_state().screen_buffer.transpose(VIZDOOM_TO_TF)
-    #TO DO: self.target_index, self.nn = self.memory.find_intermediate_reachable_goal(current_screen, self.game.get_state().game_variables, self.keyframe_coordinates)
-    self.target_index, self.nn = self.memory.find_intermediate_reachable_goal(current_screen, self.env.get_state().game_variables, self.keyframe_coordinates)
-
+    current_screen = self.game.get_state().screen_buffer.transpose(VIZDOOM_TO_TF)
+    self.target_index, self.nn = self.memory.find_intermediate_reachable_goal(current_screen, self.game.get_state().game_variables, self.keyframe_coordinates)
     if self.target_index is None:
       self.target_index = len(self.keyframes) - 1
       self.not_localized_count = 1
@@ -192,10 +185,10 @@ class Navigator:
 
   def _random_explore_step_with_repeat(self):
     action_index = random.randint(0, len(ACTIONS_LIST) - 1)
-    self.env.set_action(action_index)
+    self.game.set_action(ACTIONS_LIST[action_index])
     for repeat_index in xrange(TEST_REPEAT):
       self.log_navigation_state()
-      self.env.advance_action(1, True)
+      self.game.advance_action(1, True)
       self.steps += 1
 
   def _policy_explore_step_with_repeat(self):
@@ -214,7 +207,7 @@ class Navigator:
 
   def check_goal_reached(self):
     if self.looking_for_goal:
-      current_coordinates = self.env.get_state().game_variables
+      current_coordinates = self.game.get_state().game_variables
       return check_if_close(current_coordinates, self.goal_location)
     else:
       return False
