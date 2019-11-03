@@ -2,16 +2,7 @@ from train.train_setup import *
 import pdb
 import habitat
 print("IMPORTS COMPLETE")
-def data_generator():
-  config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
-  config.defrost()	
-  config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
-  config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
-  config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR']
-  config.SIMULATOR.TURN_ANGLE = 30
-  config.freeze()
-  env = habitat.Env(config=config)
-
+def data_generator(env):
   action_mapping = {
       0: 'stop',
       1: 'move_forward',
@@ -35,6 +26,11 @@ def data_generator():
       x.append(current_x)
       y.append(current_y)
       current_x = env.step(action_index)['rgb']
+      if env.episode_over:
+        current_x = env.reset()['rgb']
+        break
+
+
     first_second_pairs = []
     current_first = 0
     while True:
@@ -69,6 +65,17 @@ if __name__ == '__main__':
   print("HELLOOOO")
   logs_path, current_model_path = setup_training_paths(EXPERIMENT_OUTPUT_FOLDER)
   print(logs_path, current_model_path)
+  
+  config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
+  config.defrost()  
+  config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
+  config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
+  config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR']
+  config.SIMULATOR.TURN_ANGLE = 30
+  config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
+  config.freeze()
+  env = habitat.Env(config=config)
+
   #model = ACTION_NETWORK(((1 + ACTION_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), ACTION_CLASSES)
   model = ResNet18(4)
   adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
@@ -76,7 +83,8 @@ if __name__ == '__main__':
   callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
                     tf.keras.callbacks.ModelCheckpoint(current_model_path,
                                                     period=MODEL_CHECKPOINT_PERIOD)]
-  model.fit_generator(data_generator(),
+  model.fit_generator(data_generator(env),
                       steps_per_epoch=DUMP_AFTER_BATCHES,
                       epochs=ACTION_MAX_EPOCHS,
                       callbacks=callbacks_list)
+  env.close()
