@@ -29,7 +29,7 @@ def data_generator():
     y = []
     for _ in range(MAX_CONTINUOUS_PLAY):
       #current_x = game.get_state().screen_buffer.transpose(VIZDOOM_TO_TF)
-      action_index = random.randint(1, ACTION_CLASSES - 1)
+      action_index = random.randint(1, len(action_mapping)-1)
       # game_make_action_wrapper(game, ACTIONS_LIST[action_index], TRAIN_REPEAT)
       current_y = action_index
       x.append(current_x)
