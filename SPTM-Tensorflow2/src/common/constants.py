@@ -43,20 +43,20 @@ EDGE_ARCHITECTURE = get_from_env('EDGE_ARCHITECTURE', str, 'SIAMESE_NETWORK') # 
 PIXEL_COMPARISON_LOCAL_NORMALIZATION = get_from_env('PIXEL_COMPARISON_LOCAL_NORMALIZATION', bool, False)
 TRAIN_WAD_PATH = get_from_env('TRAIN_WAD_PATH', str, 'Train/D3_battle_navigation_split.wad_manymaps_test.wad')
 
-# vizdoom
-MAP_NAME_TEMPLATE = 'map%02d'
-MOVE_FORWARD = [0, 0, 0, 1, 0, 0, 0]
-MOVE_BACKWARD = [0, 0, 0, 0, 1, 0, 0]
-MOVE_LEFT = [1, 0, 0, 0, 0, 0, 0]
-MOVE_RIGHT = [0, 1, 0, 0, 0, 0, 0]
-STAY_IDLE = [0, 0, 0, 0, 0, 0, 0]
-TURN_LEFT = [0, 0, 0, 0, 0, 1, 0]
-TURN_RIGHT = [0, 0, 0, 0, 0, 0, 1]
-ACTIONS_LIST = [MOVE_FORWARD, MOVE_BACKWARD, MOVE_LEFT, MOVE_RIGHT, STAY_IDLE, TURN_LEFT, TURN_RIGHT]
-ACTION_NAMES = ['MOVE_FORWARD', 'MOVE_BACKWARD', 'MOVE_LEFT', 'MOVE_RIGHT', 'STAY_IDLE', 'TURN_LEFT', 'TURN_RIGHT']
-INVERSE_ACTION_NAMES_INDEX = {}
-for index, value in enumerate(ACTION_NAMES):
-  INVERSE_ACTION_NAMES_INDEX[value] = index
+# # vizdoom
+# MAP_NAME_TEMPLATE = 'map%02d'
+# MOVE_FORWARD = [0, 0, 0, 1, 0, 0, 0]
+# MOVE_BACKWARD = [0, 0, 0, 0, 1, 0, 0]
+# MOVE_LEFT = [1, 0, 0, 0, 0, 0, 0]
+# MOVE_RIGHT = [0, 1, 0, 0, 0, 0, 0]
+# STAY_IDLE = [0, 0, 0, 0, 0, 0, 0]
+# TURN_LEFT = [0, 0, 0, 0, 0, 1, 0]
+# TURN_RIGHT = [0, 0, 0, 0, 0, 0, 1]
+#ACTIONS_LIST = [MOVE_FORWARD, MOVE_BACKWARD, MOVE_LEFT, MOVE_RIGHT, STAY_IDLE, TURN_LEFT, TURN_RIGHT]
+#ACTION_NAMES = ['MOVE_FORWARD', 'MOVE_BACKWARD', 'MOVE_LEFT', 'MOVE_RIGHT', 'STAY_IDLE', 'TURN_LEFT', 'TURN_RIGHT']
+# INVERSE_ACTION_NAMES_INDEX = {}
+# for index, value in enumerate(ACTION_NAMES):
+#   INVERSE_ACTION_NAMES_INDEX[value] = index
 WAIT_IDLE_TICS = 0
 WAIT_BEFORE_START_TICS = 140
 VIZDOOM_TO_TF = [1, 2, 0]
@@ -67,7 +67,7 @@ SHOW_WIDTH = NET_WIDTH * 4
 SHOW_HEIGHT = NET_HEIGHT * 4
 SHOW_BORDER = 10
 SHOW_CHANNELS = NET_CHANNELS
-GYM_TO_OUR_ACTION = [STAY_IDLE, MOVE_FORWARD, TURN_RIGHT, TURN_LEFT]
+#GYM_TO_OUR_ACTION = [STAY_IDLE, MOVE_FORWARD, TURN_RIGHT, TURN_LEFT]
 ACTION_STATE_ENCODING_FRAMES = 2
 EDGE_STATE_ENCODING_FRAMES = 1
 
@@ -87,7 +87,7 @@ EDGE_MAX_EPOCHS = 10000
 ACTION_MAX_EPOCHS = 19000
 EDGE_EPISODES = 10
 EDGE_CLASSES = 2
-ACTION_CLASSES = len(ACTIONS_LIST)
+ACTION_CLASSES = 4
 NEGATIVE_SAMPLE_MULTIPLIER = 5
 TRAIN_MEMORY_FRACTION = 0.4
 ACTION_MAX_YIELD_COUNT_BEFORE_RESTART = int(20 * 100 * 64 / BATCH_SIZE)
@@ -160,20 +160,20 @@ if PIXEL_COMPARISON_LOCAL_NORMALIZATION:
 
 # teach and repeat
 TEACH_AND_REPEAT_RANDOMIZATION = 0.1
-def inverse_action(action):
-  if action == MOVE_FORWARD:
-    return MOVE_BACKWARD
-  elif action == MOVE_BACKWARD:
-    return MOVE_FORWARD
-  elif action == MOVE_LEFT:
-    return MOVE_RIGHT
-  elif action == MOVE_RIGHT:
-    return MOVE_LEFT
-  elif action == STAY_IDLE:
-    return STAY_IDLE
-  elif TURN_LEFT:
-    return TURN_RIGHT
-  elif TURN_RIGHT:
-    return TURN_LEFT
-  else:
-    raise Exception('Unknown action')
+# def inverse_action(action):
+#   if action == MOVE_FORWARD:
+#     return MOVE_BACKWARD
+#   elif action == MOVE_BACKWARD:
+#     return MOVE_FORWARD
+#   elif action == MOVE_LEFT:
+#     return MOVE_RIGHT
+#   elif action == MOVE_RIGHT:
+#     return MOVE_LEFT
+#   elif action == STAY_IDLE:
+#     return STAY_IDLE
+#   elif TURN_LEFT:
+#     return TURN_RIGHT
+#   elif TURN_RIGHT:
+#     return TURN_LEFT
+#   else:
+#     raise Exception('Unknown action')
