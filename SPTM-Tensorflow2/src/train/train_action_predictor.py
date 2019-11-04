@@ -1,6 +1,7 @@
 from train.train_setup import *
 import pdb
 import habitat
+import random
 print("IMPORTS COMPLETE")
 
 
@@ -13,8 +14,12 @@ def data_generator():
   config.SIMULATOR.TURN_ANGLE = 30
   #config.TASK.SENSORS = ["PROXIMITY_SENSOR"]
   config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
+  #config.SEED = random.randint(1, ACTION_MAX_EPOCHS)
   config.freeze()
   env = habitat.Env(config=config)
+  r = random.randint(1, len(env.episodes))
+  env._current_episode = env.episodes[r]
+
   action_mapping = {      
       0: 'move_forward',
       1: 'turn left',
@@ -22,11 +27,11 @@ def data_generator():
       3: 'stop'
   }
 
-  current_x = env.reset()['rgb']
+  current_x = env.reset()['rgb']/255.0
   yield_count = 0
   while True:
     if yield_count >= ACTION_MAX_YIELD_COUNT_BEFORE_RESTART:
-      current_x = env.reset()['rgb']
+      current_x = env.reset()['rgb']/255.0
       yield_count = 0
     x = []
     y = []
@@ -37,11 +42,10 @@ def data_generator():
       current_y = action_index
       x.append(current_x)
       y.append(current_y)
-      current_x = env.step(action_index)['rgb']
+      current_x = env.step(action_index)['rgb']/255.0
       if env.episode_over:
-        current_x = env.reset()['rgb']
+        current_x = env.reset()['rgb']/255.0
         break
-
 
     first_second_pairs = []
     current_first = 0
@@ -64,7 +68,6 @@ def data_generator():
       current_y = y[first]
       x_result.append(np.concatenate((previous_x, current_x, future_x), axis=2))
       y_result.append(current_y)
-      pdb.set_trace()	
       if len(x_result) == BATCH_SIZE:
         yield_count += 1
         yield (np.array(x_result),
@@ -73,7 +76,7 @@ def data_generator():
         x_result = []
         y_result = []
   env.close()
-      
+
 if __name__ == '__main__':
   print("HELLOOOO")
   logs_path, current_model_path = setup_training_paths(EXPERIMENT_OUTPUT_FOLDER)
@@ -90,4 +93,3 @@ if __name__ == '__main__':
                       steps_per_epoch=DUMP_AFTER_BATCHES,
                       epochs=ACTION_MAX_EPOCHS,
                       callbacks=callbacks_list)
-  env.close()
