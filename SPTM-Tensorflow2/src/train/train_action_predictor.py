@@ -69,6 +69,7 @@ def data_generator():
       x_result.append(np.concatenate((previous_x, current_x, future_x), axis=2))
       y_result.append(current_y)
       if len(x_result) == BATCH_SIZE:
+        print("YIELDING")
         yield_count += 1
         yield (np.array(x_result),
                tf.keras.utils.to_categorical(np.array(y_result),
