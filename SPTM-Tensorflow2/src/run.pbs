@@ -7,13 +7,7 @@
 #PBS -m bea
 #PBS -M dpshah2@illinois.edu
 . /opt/modules/default/init/bash # NEEDED to add module commands to shell
-cd /home/dpshah2/scratch
+cd /home/dpshah2/scratch/ece598sg-project/SPTM-Tensorflow2/
 module load singularity
-singularity shell --nv habitat.simg
-. activate habitat
-cd ece598sg-project/SPTM-Tensorflow2/src/
-. /opt/modules/default/init/bash # NEEDED to add module commands to shell
-#module load python/2.0.1
-#module load cudatoolkit
-aprun -n 1 -N 1 python -m train.train_action_predictor.py #resnet_tinyimagenet.py
-
+singularity exec --nv habitat.simg
+ /bin/bash ./src/run.sh
