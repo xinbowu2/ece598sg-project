@@ -3,14 +3,16 @@ import numpy as np
 from attention import MultiHeadAttention
 
 class AttentionBlock(tf.keras.layers.Layer):
-  def __init__(self, d_model, num_heads, rate=0.1):
+  def __init__(self, d_model, num_heads, epsilon=1e-6, rate=0.1):
     super(AttentionBlock, self).__init__()
     self.num_heads = num_heads
     self.d_model = d_model
+    self.epsilon = epsilon
+    self.rate = rate
 
     self.mha = MultiHeadAttention(d_model, num_heads)
-    self.ln1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
-    self.ln2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+    self.ln1 = tf.keras.layers.LayerNormalization(epsilon)
+    self.ln2 = tf.keras.layers.LayerNormalization(epsilon)
     self.dropout1 = tf.keras.layers.Dropout(rate)
     self.dropout2 = tf.keras.layers.Dropout(rate)
 
