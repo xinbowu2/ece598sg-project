@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 from attention_block import AttentionBlock
 
-class AttentionPolicy(tf.keras.layers.Layer):
+class AttentionPolicyNet(tf.keras.layers.Layer):
   def __init__(self, num_classes, d_model, num_heads=8, epsilon=1e-6, rate=0.1):
     super(AttentionPolicy, self).__init__()
     self.num_classes = num_classes
