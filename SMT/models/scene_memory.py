@@ -12,6 +12,8 @@ class SceneMemory(tf.keras.Model):
         self.embedding_nets = dict()
         self.memory = []
 
+        self.downsampling = tf.keras.layers.UpSample2D(size=())
+
         if 'image' in modalities:
           self.embedding_nets['image'] = ModifiedResNet18(modality_dim['image'], reduce_factor)
 
@@ -32,6 +34,7 @@ class SceneMemory(tf.keras.Model):
 
 
     def _update(self, observations, training=None):
+      observations = tf.keras.layers.UpSample2D(size=())
       curr_embedding = self._embed(observations, training)
       self.memory.append(curr_embedding)
 
