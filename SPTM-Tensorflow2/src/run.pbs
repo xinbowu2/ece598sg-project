@@ -9,5 +9,6 @@
 . /opt/modules/default/init/bash # NEEDED to add module commands to shell
 cd /home/dpshah2/scratch/ece598sg-project/SPTM-Tensorflow2/
 module load singularity
-singularity exec --nv habitat.simg
+module load cuda/10.0
+singularity exec --nv -B /usr/local/cuda habitat.simg
  /bin/bash ./src/run.sh
