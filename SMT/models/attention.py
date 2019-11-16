@@ -1,5 +1,4 @@
 import tensorflow as tf
-from common.resnet18 import ResNet18
 import numpy as np
 
 class MultiHeadAttention(tf.keras.layers.Layer):
@@ -16,7 +15,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     self.wk = tf.keras.layers.Dense(d_model)
     self.wv = tf.keras.layers.Dense(d_model)
     
-    self.dense = tf.keras.layers.Dense(d_model)
+    #self.dense = tf.keras.layers.Dense(d_model)
         
   def split_heads(self, x, batch_size):
     """Split the last dimension into (num_heads, depth).
@@ -46,9 +45,9 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     concat_attention = tf.reshape(scaled_attention, 
                                   (batch_size, -1, self.d_model))  # (batch_size, seq_len_q, d_model)
 
-    output = self.dense(concat_attention)  # (batch_size, seq_len_q, d_model)
+    #output = self.dense(concat_attention)  # (batch_size, seq_len_q, d_model)
         
-    return output, attention_weights
+    return concat_attention, attention_weights
 
  def scaled_dot_product_attention(q, k, v, mask=None):
   """Calculate the attention weights.

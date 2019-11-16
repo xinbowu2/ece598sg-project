@@ -14,7 +14,7 @@ class AttentionPolicyNet(tf.keras.layers.Layer):
     self.encoder = AttentionBlock(d_model, num_heads, epsilon, rate)
     self.decoder = AttentionBlock(d_model, num_heads, epsilon, rate)
 
-    self.ffn = point_wise_feed_forward_network(d_model, d_model) #??
+    self.ffn = point_wise_feed_forward_network(d_model, num_classes) #??
 
   def call(self, o, m, mask, training):
     c = self.encoder(m, m, m, mask, training)
