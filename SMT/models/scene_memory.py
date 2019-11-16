@@ -3,7 +3,7 @@ from resnet18 import ModifiedResNet18
 
 class SceneMemory(tf.keras.Model):
 
-    def __init__(self, modalities=['image'], modality_dim={'image':64}, downsampleing_size=(64,64), 
+    def __init__(self, modalities=['image'], modality_dim={'image':64}, downsampling_size=(64,64), 
       reduce_factor=4, observation_dim=128):
         super(SceneMemory, self).__init__()
         self.downsampling_size = downsampling_size
@@ -41,7 +41,7 @@ class SceneMemory(tf.keras.Model):
       observations = tf.image.resize(observations,
         size=self.downsampling_size,
         method=ResizeMethod.BILINEAR)
-    
+
       curr_embedding = self._embed(observations, training)
       self.memory.append(curr_embedding)
 
