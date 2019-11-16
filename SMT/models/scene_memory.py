@@ -3,8 +3,10 @@ from resnet18 import ModifiedResNet18
 
 class SceneMemory(tf.keras.Model):
 
-    def __init__(self, modalities=['image'], modality_dim={'image':64}, reduce_factor=4, observation_dim=128):
+    def __init__(self, modalities=['image'], modality_dim={'image':64}, downsampling_size=(64,64), 
+      reduce_factor=4, observation_dim=128):
         super(SceneMemory, self).__init__()
+        self.downsampling_size = downsampling_size
         self.modalities = modalities
         self.modality_dim = modality_dim
         self.observation_dim = observation_dim # the dimension of embedding for observations
@@ -12,7 +14,9 @@ class SceneMemory(tf.keras.Model):
         self.embedding_nets = dict()
         self.memory = []
 
-        self.downsampling = tf.keras.layers.UpSample2D(size=())
+        self.downsampling = tf.keras.layers.AveragePooling2D(pool_size=(4,4),
+          stride
+          )
 
         if 'image' in modalities:
           self.embedding_nets['image'] = ModifiedResNet18(modality_dim['image'], reduce_factor)
@@ -34,7 +38,10 @@ class SceneMemory(tf.keras.Model):
 
 
     def _update(self, observations, training=None):
-      observations = tf.keras.layers.UpSample2D(size=())
+      observations = tf.image.resize(observations,
+        size=self.downsampling_size,
+        method=ResizeMethod.BILINEAR)
+
       curr_embedding = self._embed(observations, training)
       self.memory.append(curr_embedding)
 

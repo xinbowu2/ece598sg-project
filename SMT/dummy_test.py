@@ -1,17 +1,22 @@
 import tensorflow as tf
 import habitat
 import models
-
 # set up models 
 
 modalities = ['image']
 modality_dim = {'image': 64}
 reduce_factor = 4
 observation_dim = 128
+depth = 128
+num_heads = 8
+d_model = num_heads*depth
+
+num_actions = 4
 
 scene_memory = models.SceneMemory(modalities, modality_dim, reduce_factor, 
   observation_dim)
 
+policy_network = models.AttentionPolicyNet(num_actions, d_model, num_heads)
 
 
 # 256x256x3
@@ -41,5 +46,5 @@ action_mapping = {
 
 current_x = env.reset()['rgb']/255.0
 
-
+current_embedding = scene_memory(current_x)
 
