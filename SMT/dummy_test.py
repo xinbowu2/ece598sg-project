@@ -1,6 +1,8 @@
 import tensorflow as tf
 import habitat
 import models
+import random
+import pdb
 # set up models 
 
 modalities = ['image']
@@ -30,7 +32,7 @@ config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
 config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
 config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
 config.SIMULATOR.TURN_ANGLE = 30
-config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
+config.ENVIRONMENT.MAX_EPISODE_STEPS = 100
 
 config.freeze()
 env = habitat.Env(config=config)
@@ -43,7 +45,7 @@ action_mapping = {
       2: 'turn right',
       3: 'stop'
 }
-
+pdb.set_trace()
 current_x = env.reset()['rgb']/255.0
 
 current_embedding = scene_memory(current_x)

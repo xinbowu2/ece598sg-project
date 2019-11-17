@@ -1,5 +1,5 @@
 import tensorflow as tf
-from resnet18 import ModifiedResNet18
+from models.resnet18 import ModifiedResNet18
 
 class SceneMemory(tf.keras.Model):
 
@@ -13,10 +13,6 @@ class SceneMemory(tf.keras.Model):
         self.reduce_factor = reduce_factor
         self.embedding_nets = dict()
         self.memory = []
-
-        self.downsampling = tf.keras.layers.AveragePooling2D(pool_size=(4,4),
-          stride
-          )
 
         if 'image' in modalities:
           self.embedding_nets['image'] = ModifiedResNet18(modality_dim['image'], reduce_factor)

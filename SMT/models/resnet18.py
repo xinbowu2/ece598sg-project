@@ -1,5 +1,5 @@
 import tensorflow as tf
-from residual_block import build_res_block_1
+from models.residual_block import build_res_block_1
 
 class ModifiedResNet18(tf.keras.Model):
 
