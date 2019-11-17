@@ -1,6 +1,6 @@
 import tensorflow as tf
 from models.resnet18 import ModifiedResNet18
-
+import pdb
 class SceneMemory(tf.keras.Model):
 
     def __init__(self, modalities=['image'], modality_dim={'image':64}, downsampling_size=(64,64), 
@@ -34,10 +34,8 @@ class SceneMemory(tf.keras.Model):
 
 
     def _update(self, observations, training=None):
-      observations = tf.image.resize(observations,
-        size=self.downsampling_size,
-        method=ResizeMethod.BILINEAR)
-
+      observations['image'] = tf.image.resize(observations['image'],
+        size=self.downsampling_size)
       curr_embedding = self._embed(observations, training)
       self.memory.append(curr_embedding)
 
@@ -47,11 +45,11 @@ class SceneMemory(tf.keras.Model):
     def _embed(self, observations, training=None):
        embeddings = []
 
-       for modality in modalities.keys():
+       for modality in self.modalities:
         if modality == 'image':
-          embeddings.append(self.embedding_nets[modalities](observations[modality], training))
+          embeddings.append(self.embedding_nets[modality](observations[modality], training))
         else:
-          embeddings.append(self.embedding_nets[modalities](observations[modality]))
+          embeddings.append(self.embedding_nets[modality](observations[modality]))
 
        concat_embedding = tf.concat(embeddings, axis=1)
 

@@ -3,8 +3,9 @@ import habitat
 import models
 import random
 import pdb
+import numpy as np
 # set up models 
-
+tf.keras.backend.set_floatx('float32')
 modalities = ['image']
 modality_dim = {'image': 64}
 reduce_factor = 4
@@ -15,10 +16,9 @@ d_model = num_heads*depth
 
 num_actions = 4
 
-scene_memory = models.SceneMemory(modalities, modality_dim, reduce_factor, 
-  observation_dim)
+scene_memory = models.SceneMemory(modalities=modalities, modality_dim=modality_dim, observation_dim=observation_dim)
 
-policy_network = models.AttentionPolicyNet(num_actions, d_model, num_heads)
+policy_network = models.AttentionPolicyNet(num_actions, d_model, num_heads=num_heads)
 
 
 # 256x256x3
@@ -45,8 +45,12 @@ action_mapping = {
       2: 'turn right',
       3: 'stop'
 }
-pdb.set_trace()
-current_x = env.reset()['rgb']/255.0
 
-current_embedding = scene_memory(current_x)
+current_x = env.reset()['rgb']/255.0
+tf.expand_dims(current_x, 0)
+current_x = np.transpose(current_x, (0,3,1,2))
+pdb.set_trace()
+observation = {}
+observation['image'] = current_x
+current_embedding = scene_memory(observation)
 
