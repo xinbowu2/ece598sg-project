@@ -1,8 +1,8 @@
 import tensorflow as tf
 from models.resnet18 import ModifiedResNet18
 import pdb
-class SceneMemory(tf.keras.Model):
 
+class SceneMemory(tf.keras.Model):
     def __init__(self, modalities=['image'], modality_dim={'image':64}, downsampling_size=(64,64), 
       reduce_factor=4, observation_dim=128):
         super(SceneMemory, self).__init__()
