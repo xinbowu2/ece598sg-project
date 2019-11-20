@@ -47,10 +47,7 @@ action_mapping = {
 }
 
 current_x = env.reset()['rgb']/255.0
-tf.expand_dims(current_x, 0)
-current_x = np.transpose(current_x, (0,3,1,2))
-pdb.set_trace()
-observation = {}
-observation['image'] = current_x
-current_embedding = scene_memory(observation)
+observations = {}
+observations['image'] = current_x
+current_embedding = scene_memory(observations)
 
