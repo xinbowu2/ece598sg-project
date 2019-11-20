@@ -22,7 +22,7 @@ class RL_Agent(tf.keras.Model):
 		self.epsilon = epsilon #epsilon-greedy
 		
 		self.scene_memory = SceneMemory()
-		self.policy_network = AttentionPolicyNet()
+		self.policy_network = AttentionPolicyNet(num_actions, d_model)
 
 		self.enviroment = enviroment
 		self.optimizer = optimizer

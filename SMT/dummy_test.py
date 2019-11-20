@@ -46,8 +46,13 @@ action_mapping = {
       3: 'stop'
 }
 
-current_x = env.reset()['rgb']/255.0
 observations = {}
+current_x = env.reset()['rgb']/255.0
 observations['image'] = current_x
-current_embedding = scene_memory(observations)
 
+current_embedding, mem = scene_memory(observations)
+new_x = env.step(1)['rgb']/255.0
+observations['image'] = new_x
+current_embedding, mem = scene_memory(observations)
+
+pdb.set_trace()
