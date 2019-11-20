@@ -38,8 +38,7 @@ class RL_Agent(tf.keras.Model):
 		# Initialize discount and exploration rate
 		self.gamma = gamma
 
-	# def store(self, state, action, reward, next_state, memory, terminated):
- #        self.experience_replay.append((state, action, reward, next_state, memory, terminated))
+		#self.policy_network.compile(loss='mse', optimizer=self.optimizer)
 
 	#choose which action to take using epsilon-greedy policy
 	def sample_action(self, state):
@@ -86,50 +85,15 @@ class RL_Agent(tf.keras.Model):
 		action_batch = action_list[time_step-1]
 		reward_batch = reward_list[time_step-1]
 
+		target = self.policy_network(state_batch, memory_batch)
+		q_vals = target.clone()
 		if time_step == horizon-1:
-			target = reward_batch
+			target[action_batch] = reward_batch
 		else:
 			t = self.target_policy_network(next_state_batch, next_memory_batch) #? what is shape of t? batch_size*actions
-			target = reward_batch + self.gamma*tf.math.reduce_max(t, axis=1)
+			target[action_batch] = reward_batch + self.gamma*tf.math.reduce_max(t, axis=1)
 		
-		q_vals = self.policy_network(state_batch, memory_batch)
-
 		with tf.GradientTape() as tape:
-			loss = self.loss_function(target, )
-
-	def retrain(self, batch_size):
-	    minibatch = random.sample(self.experience_replay, batch_size)
-		states = minibatch[:,0]
-		next_states = minibatch[:,3]
-		memory = minibatch[:, 4]
-		actions = minibatch[:, 1]
-		rewards = minibatch[:, 2]
-		terminated = minibatch[:, 5]
-		q_vals = self.policy_network(states, memory)
-		target = q_vals.copy()
-		t = self.policy_network(next_states, memory)
-
-		target[:, actions] = rewards + self.gamma* np.max(target, axis=1) *(1-terminated) #verify this??? 
-
-		with tf.GradientTape() as tape:
-		    loss = self.loss_function(target, q_vals)
-		  	gradients = tape.gradient(loss, #)    
-		  	self.optimizer.apply_gradients(zip(gradients, transformer.trainable_variables))
-
-	    # for state, action, reward, next_state, terminated in minibatch:
-
-	    #     target = self.q_network.predict(state)
-
-	    #     loss = self.criterion(qvals[action], target)
-	    #     loss.backward()
-	    #     self.optimizer.step()
-
-	    #     return loss.item()
-
-	    #     if terminated:
-	    #         target[0][action] = reward
-	    #     else:
-	    #         t = self.target_policy_network.predict(next_state)
-	    #         target[0][action] = reward + self.gamma * np.amax(t)
-
-	    #     self.q_network.fit(state, target, epochs=1, verbose=0)
+			loss = self.loss_function(target, q_vals)
+		gradients = tape.gradient(loss, self.policy_network.trainable_variables)
+		self.optimizer.apply_gradients(zip(gradients, self.policy_network.trainable_variables))
