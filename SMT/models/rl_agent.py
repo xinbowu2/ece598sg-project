@@ -3,6 +3,7 @@ from models.scene_memory import SceneMemory
 from models.att_policy import AttentionPolicyNet
 from config.models import *
 import numpy as np
+import random
 
 action_mapping = {      
       0: 'move_forward',
@@ -15,7 +16,7 @@ batch_size = 64
 
 class RL_Agent(tf.keras.Model):
 
-	def __init__(self, enviroment, optimizer, loss_function, epsilon=0.1 ,gamma=0.95, num_actions=4, d_model=1024):
+	def __init__(self, environment, optimizer, loss_function, epsilon=0.1 ,gamma=0.95, num_actions=4, d_model=128):
 		super(RL_Agent, self).__init__()
 		
 		self.action_size = num_actions
@@ -23,8 +24,8 @@ class RL_Agent(tf.keras.Model):
 		
 		self.scene_memory = SceneMemory()
 		self.policy_network = AttentionPolicyNet(num_actions, d_model)
-
-		self.enviroment = enviroment
+		self.target_policy_network = self.policy_network.clone()
+		self.environment = environment
 		self.optimizer = optimizer
 		self.loss_function = loss_function
 
@@ -32,12 +33,13 @@ class RL_Agent(tf.keras.Model):
 		self.memory = None
 
 		self.experience_replay = deque(maxlen=2000)
-
+		self.action_list = []
+		self.reward_list = []
 		# Initialize discount and exploration rate
 		self.gamma = gamma
 
-	def store(self, state, action, reward, next_state, memory, terminated):
-        self.experience_replay.append((state, action, reward, next_state, memory, terminated))
+	# def store(self, state, action, reward, next_state, memory, terminated):
+ #        self.experience_replay.append((state, action, reward, next_state, memory, terminated))
 
 	#choose which action to take using epsilon-greedy policy
 	def sample_action(self, state):
@@ -45,19 +47,55 @@ class RL_Agent(tf.keras.Model):
 			return random.randint(0, len(action_mapping)-2)
 		else:
 			q_vals = self.policy_network(self.obs_embedding, self.memory)
-			return tf.random.categorical(q_vals, 1)[0]
+			return tf.random.categorical(q_vals, 1)
 
 	#returns the observation after taking the action
 	def step(self, action):
-
 		obs = {}
-		obs['image'] = self.enviroment.step(action)['rgb']/255.0
+		obs['image'] = self.environment.step(action)['rgb']/255.0
+		self.action_list.append(action)
+		self.reward_list.append(reward)
+
 		new_obs_embedding, self.memory = self.scene_memory(obs)
 		#write a function to calculate the reward 
-
-		self.store(self.obs_embedding, action, reward, new_obs_embedding, self.memory, enviroment.episode_over)
 		self.obs_embedding = new_obs_embedding
+		if self.environment.episode_over:
+			store_episode(self.memory, self.action_list, self.reward_list)
+			self.memory = None
+			self.action_list = []
+			self.reward_list = []
+	#stores a episode in the replay-buffer
+	def store_episode(self, memory, action_list, reward_list):
+		self.experience_replay.append(memory, action_list, reward_list)
 
+	def align_target_model(self):
+    	self.target_policy_network.set_weights(self.policy_network.get_weights())
+	
+	def update_model(self, batch_size):
+		minibatch = random.sample(self.experience_replay, batch_size) #size of minibatch = (batch_size, Horizon, 128)
+		action_list = minibatch[:,1]
+		reward_list = minibatch[:,2]
+		minibatch = minibatch[:,0]
+		horizon = minibatch.shape[1]
+		time_step = np.random.random_integers(1,horizon-1)
+		
+		memory_batch = minibatch[:,0:time_step,:]
+		state_batch = minibatch[:,time_step-1,:]
+		next_state_batch = minibatch[:,time_step,:]
+		next_memory_batch = minibatch[:, 0:time_step+1, :]
+		action_batch = action_list[time_step-1]
+		reward_batch = reward_list[time_step-1]
+
+		if time_step == horizon-1:
+			target = reward_batch
+		else:
+			t = self.target_policy_network(next_state_batch, next_memory_batch) #? what is shape of t? batch_size*actions
+			target = reward_batch + self.gamma*tf.math.reduce_max(t, axis=1)
+		
+		q_vals = self.policy_network(state_batch, memory_batch)
+
+		with tf.GradientTape() as tape:
+			loss = self.loss_function(target, )
 
 	def retrain(self, batch_size):
 	    minibatch = random.sample(self.experience_replay, batch_size)
@@ -91,7 +129,7 @@ class RL_Agent(tf.keras.Model):
 	    #     if terminated:
 	    #         target[0][action] = reward
 	    #     else:
-	    #         t = self.target_network.predict(next_state)
+	    #         t = self.target_policy_network.predict(next_state)
 	    #         target[0][action] = reward + self.gamma * np.amax(t)
 
 	    #     self.q_network.fit(state, target, epochs=1, verbose=0)
