@@ -27,13 +27,13 @@ class SceneMemory(tf.keras.Model):
 		self.fc = tf.keras.layers.Dense(observation_dim)
 	
 
-	def call(self, observations, training=None):
-		curr_embedding  = self._update(observations, training)
+	def call(self, observations, training=None, training_embedding=False):
+		curr_embedding  = self._update(observations, training, training_embedding)
 
 		return curr_embedding, tf.stack(self.memory, axis=1)
 
 
-	def _update(self, observations, training=None):
+	def _update(self, observations, training=None, training_embedding=False):
 		#observations['image'] should be a 4D tensor (batch, height, width, channels)
 		#input will be (height, width, channels)
 		for modality in self.modalities:
@@ -46,7 +46,11 @@ class SceneMemory(tf.keras.Model):
 		observations['image'] = tf.transpose(observations['image'], perm=[0, 3, 1, 2])
 
 		curr_embedding = self._embed(observations, training)
-		self.memory.append(curr_embedding)
+
+    if training_embedding: 
+      self.memory = [curr_embedding]
+    else:
+		  self.memory.append(curr_embedding)
 
 		return curr_embedding
 
