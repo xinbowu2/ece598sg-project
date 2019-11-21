@@ -19,12 +19,14 @@ batch_size = 64
 
 class RL_Agent(tf.keras.Model):
 
-	def __init__(self, environment, optimizer, loss_function, epsilon=0.1 ,gamma=0.95, num_actions=4, d_model=128):
+	def __init__(self, environment, optimizer, loss_function, training_embedding=False, epsilon=0.1 ,gamma=0.95, num_actions=4, d_model=128):
 		super(RL_Agent, self).__init__()
 		
 		self.action_size = num_actions
 		self.epsilon = epsilon #epsilon-greedy
-		
+			
+		self.training_embedding = training_embedding
+
 		self.scene_memory = SceneMemory()
 		self.policy_network = AttentionPolicyNet(num_actions, d_model)
 		self.target_policy_network = AttentionPolicyNet(num_actions, d_model)
@@ -45,7 +47,7 @@ class RL_Agent(tf.keras.Model):
 	def update_scene_memory(self, image):
 		obs = {}
 		obs['image'] = image
-		self.obs_embedding, self.memory = self.scene_memory(obs)
+		self.obs_embedding, self.memory = self.scene_memory(obs, self.training_embedding)
 		return
 
 	#resets the environment and sets current_episode number to r
@@ -65,15 +67,16 @@ class RL_Agent(tf.keras.Model):
 			return tf.random.categorical(q_vals[:,0,:], 1)[0]
 
 	#returns the observation after taking the action
-	def step(self, action):
+	def step(self, action, training=False):
 		current_x = self.environment.step(action)['rgb']/255.0
 		self.update_scene_memory(current_x)
 		
 		reward = 1
 		self.action_list.append(action)
 		self.reward_list.append(reward)
-		pdb.set_trace()
-		self.update_model(len(self.memory)-1)
+		if training:
+			self.update_model(len(self.memory)-1)
+		
 		if self.environment.episode_over:
 			self.store_episode(self.memory, self.action_list, self.reward_list)
 			self.memory = None
