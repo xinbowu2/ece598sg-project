@@ -22,8 +22,10 @@ class HabitatWrapper:
   def reset(self):
     observations = self.env.reset()
     self.game_state.update(observations)
-    self.last_cell_x, self.last_cell_y = 0, 0
-    self.visited_cells.append([0,0])
+    curr_x, curr_y = self.game_variables['position']
+
+    self.last_cell_x, self.last_cell_y = curr_x, curr_y
+    self.visited_cells.append([curr_x,curr_y])
     self.is_episode_finished = self.env.episode_over()
 
   def get_state(self):
