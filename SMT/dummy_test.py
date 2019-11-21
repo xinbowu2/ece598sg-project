@@ -46,6 +46,17 @@ action_mapping = {
       3: 'stop'
 }
 
+from tensorflow.keras.optimizers import Adam
+optimizer = Adam()
+from tensorflow.keras.losses import MSE 
+loss_function = MSE
+from models import RL_Agent
+
+agent = RL_Agent(env, optimizer, loss_function)
+agent.reset(109)
+
+agent.step(0)
+
 observations = {}
 current_x = env.reset()['rgb']/255.0
 observations['image'] = current_x
@@ -55,4 +66,3 @@ new_x = env.step(1)['rgb']/255.0
 observations['image'] = new_x
 current_embedding, mem = scene_memory(observations)
 
-pdb.set_trace()

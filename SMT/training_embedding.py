@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 import numpy as np
 import random
-from IPython.display import clear_output
+#from IPython.display import clear_output
 from collections import deque
 import progressbar
 
@@ -18,7 +18,7 @@ timesteps_per_episode = config.TRAINING.TIMESTEPS_PER_EPISODE
 environment = HabitatWrapper(config)
 agent  = models.RL_Agent(config)
 
-optimizer = Adam(learning_rate=0.01)
+optimizer = Adam(learning_rate=0.001)
 
 for e in range(0, num_of_episodes):
     # Reset the enviroment
