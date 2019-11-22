@@ -34,9 +34,6 @@ class RL_Agent(tf.keras.Model):
 		self.optimizer = optimizer
 		self.loss_function = loss_function
 
-		self.obs_embedding = None
-		self.memory = None
-
 		self.experience_replay = collections.deque(maxlen=2000)
 		self.action_list = []
 		self.reward_list = []
@@ -47,7 +44,7 @@ class RL_Agent(tf.keras.Model):
 	def update_scene_memory(self, image):
 		obs = {}
 		obs['image'] = image
-		self.obs_embedding, self.memory = self.scene_memory(obs, self.training_embedding)
+		self.scene_memory(obs, self.training_embedding)
 		return
 
 	#resets the environment and sets current_episode number to r
@@ -63,7 +60,7 @@ class RL_Agent(tf.keras.Model):
 		if np.random.rand() <= self.epsilon:
 			return random.randint(0, len(action_mapping)-2)
 		else:
-			q_vals = self.policy_network(self.obs_embedding, self.memory) #shape is batch_size*1*num_actions
+			q_vals = self.policy_network(self.scene_memory.obs_embedding, self.scene_memory.memory) #shape is batch_size*1*num_actions
 			return tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
 
 	#returns the observation after taking the action
@@ -78,7 +75,7 @@ class RL_Agent(tf.keras.Model):
 			self.update_model(len(self.memory)-1, batch_size)
 		
 		if self.environment.episode_over:
-			self.store_episode(self.memory, self.action_list, self.reward_list)
+			self.store_episode(self.scene_memory.memory, self.action_list, self.reward_list)
 			self.memory = None
 			self.action_list = []
 			self.reward_list = []
