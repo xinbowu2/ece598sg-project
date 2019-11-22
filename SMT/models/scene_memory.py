@@ -47,10 +47,10 @@ class SceneMemory(tf.keras.Model):
 
 		curr_embedding = self._embed(observations, training)
 
-    if training_embedding: 
-      self.memory = [curr_embedding]
-    else:
-		  self.memory.append(curr_embedding)
+		if training_embedding: 
+			self.memory = [curr_embedding]
+		else:
+			self.memory.append(curr_embedding)
 
 		return curr_embedding
 
@@ -67,8 +67,3 @@ class SceneMemory(tf.keras.Model):
 		concat_embedding = tf.concat(embeddings, axis=1)
 
 		return self.fc(concat_embedding)
-
-
-
-
-
