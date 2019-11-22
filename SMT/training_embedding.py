@@ -24,6 +24,7 @@ config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
 config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
 config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
 config.SIMULATOR.TURN_ANGLE = 30
+config.SIMULATOR.SCENE = "../data/scene_datasets/gibson/Lynchburg.glb"
 config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon
 
 config.freeze()
