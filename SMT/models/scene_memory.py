@@ -13,6 +13,7 @@ class SceneMemory(tf.keras.Model):
 		self.reduce_factor = reduce_factor
 		self.embedding_nets = dict()
 		self.memory = []
+		self.obs_embedding = None
 
 		if 'image' in modalities:
 			self.embedding_nets['image'] = ModifiedResNet18(modality_dim['image'], reduce_factor)
@@ -29,7 +30,7 @@ class SceneMemory(tf.keras.Model):
 
 	def call(self, observations, training=None, training_embedding=False):
 		curr_embedding  = self._update(observations, training, training_embedding)
-
+		self.obs_embedding = curr_embedding
 		return curr_embedding, tf.stack(self.memory, axis=1)
 
 
@@ -47,10 +48,10 @@ class SceneMemory(tf.keras.Model):
 
 		curr_embedding = self._embed(observations, training)
 
-    if training_embedding: 
-      self.memory = [curr_embedding]
-    else:
-		  self.memory.append(curr_embedding)
+		if training_embedding: 
+			self.memory = [curr_embedding]
+		else:
+			self.memory.append(curr_embedding)
 
 		return curr_embedding
 
@@ -67,8 +68,3 @@ class SceneMemory(tf.keras.Model):
 		concat_embedding = tf.concat(embeddings, axis=1)
 
 		return self.fc(concat_embedding)
-
-
-
-
-
