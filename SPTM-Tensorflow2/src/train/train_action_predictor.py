@@ -4,7 +4,6 @@ import habitat
 import random
 print("IMPORTS COMPLETE")
 
-
 def data_generator():
   config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
   config.defrost()  
@@ -94,7 +93,7 @@ if __name__ == '__main__':
   model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
   callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
                     tf.keras.callbacks.ModelCheckpoint(current_model_path,
-                                                    period=50)]
+                                                    period=MODEL_CHECKPOINT_PERIOD)]
   model.fit_generator(data_generator(),
                       steps_per_epoch=DUMP_AFTER_BATCHES,
                       epochs=ACTION_MAX_EPOCHS,
