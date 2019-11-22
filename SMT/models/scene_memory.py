@@ -27,6 +27,10 @@ class SceneMemory(tf.keras.Model):
 
 		self.fc = tf.keras.layers.Dense(observation_dim)
 	
+	def reset(self):
+		self.obs_embedding = None
+		self.memory = []
+		return
 
 	def call(self, observations, training=None, training_embedding=False):
 		curr_embedding  = self._update(observations, training, training_embedding)

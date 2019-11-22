@@ -44,11 +44,12 @@ class RL_Agent(tf.keras.Model):
 	def update_scene_memory(self, image):
 		obs = {}
 		obs['image'] = image
-		self.scene_memory(obs, self.training_embedding)
+		self.scene_memory(obs, training_embedding=self.training_embedding)
 		return
 
 	#resets the environment and sets current_episode number to r
 	def reset(self, episode_idx):
+		self.scene_memory.reset()
 		self.environment._current_episode = self.environment.episodes[episode_idx]
 		current_x = self.environment.reset()['rgb']/255.0
 		self.update_scene_memory(current_x)
@@ -60,7 +61,7 @@ class RL_Agent(tf.keras.Model):
 		if np.random.rand() <= self.epsilon:
 			return random.randint(0, len(action_mapping)-2)
 		else:
-			q_vals = self.policy_network(self.scene_memory.obs_embedding, self.scene_memory.memory) #shape is batch_size*1*num_actions
+			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
 			return tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
 
 	#returns the observation after taking the action
@@ -72,10 +73,10 @@ class RL_Agent(tf.keras.Model):
 		self.action_list.append(action)
 		self.reward_list.append(reward)
 		if training:
-			self.update_model(len(self.memory)-1, batch_size)
+			self.update_model(len(self.scene_memory.memory)-1, batch_size)
 		
 		if self.environment.episode_over:
-			self.store_episode(self.scene_memory.memory, self.action_list, self.reward_list)
+			self.store_episode(tf.stack(self.scene_memory.memory, axis=1), self.action_list, self.reward_list)
 			self.memory = None
 			self.action_list = []
 			self.reward_list = []
