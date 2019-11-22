@@ -6,20 +6,23 @@ print("IMPORTS COMPLETE")
 
 
 def data_generator():
-  config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
+  config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
   config.defrost()  
-  config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
-  config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
+  config.DATASET.DATA_PATH = 'data/datasets/pointnav/gibson/v1/val/val.json.gz'
+  config.DATASET.SCENES_DIR = 'data/scene_datasets/gibson'
+  config.SIMULATOR.SCENE = "data/scene_datasets/gibson/Lynchburg.glb"
   config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
   config.SIMULATOR.TURN_ANGLE = 30
-  #config.TASK.SENSORS = ["PROXIMITY_SENSOR"]
+  #config.SIMULATOR.TASK.MEASUREMENTS = ['COLLISIONS']  
+#config.TASK.SENSORS = ["PROXIMITY_SENSOR"]
   config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
   #config.SEED = random.randint(1, ACTION_MAX_EPOCHS)
   config.freeze()
+  # print(config)
   env = habitat.Env(config=config)
   r = random.randint(1, len(env.episodes))
   env._current_episode = env.episodes[r]
-
+  
   action_mapping = {      
       0: 'move_forward',
       1: 'turn left',
@@ -28,6 +31,7 @@ def data_generator():
   }
 
   current_x = env.reset()['rgb']/255.0
+  # print(config)
   yield_count = 0
   while True:
     if yield_count >= ACTION_MAX_YIELD_COUNT_BEFORE_RESTART:
@@ -35,6 +39,7 @@ def data_generator():
       yield_count = 0
     x = []
     y = []
+    
     for _ in range(MAX_CONTINUOUS_PLAY):
       #current_x = game.get_state().screen_buffer.transpose(VIZDOOM_TO_TF)
       action_index = random.randint(0, len(action_mapping)-2)
@@ -43,6 +48,7 @@ def data_generator():
       x.append(current_x)
       y.append(current_y)
       current_x = env.step(action_index)['rgb']/255.0
+        
       if env.episode_over:
         current_x = env.reset()['rgb']/255.0
         break
@@ -69,8 +75,7 @@ def data_generator():
       x_result.append(np.concatenate((previous_x, current_x, future_x), axis=2))
       y_result.append(current_y)
       if len(x_result) == BATCH_SIZE:
-        print("YIELDING")
-        yield_count += 1
+        yield_count += 1 
         yield (np.array(x_result),
                tf.keras.utils.to_categorical(np.array(y_result),
                                           num_classes=ACTION_CLASSES))
@@ -84,12 +89,12 @@ if __name__ == '__main__':
   print(logs_path, current_model_path)
 
   #model = ACTION_NETWORK(((1 + ACTION_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), ACTION_CLASSES)
-  model = ResNet18(4)
+  model = ResNet18(3)
   adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
   model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
   callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
                     tf.keras.callbacks.ModelCheckpoint(current_model_path,
-                                                    period=MODEL_CHECKPOINT_PERIOD)]
+                                                    period=50)]
   model.fit_generator(data_generator(),
                       steps_per_epoch=DUMP_AFTER_BATCHES,
                       epochs=ACTION_MAX_EPOCHS,
