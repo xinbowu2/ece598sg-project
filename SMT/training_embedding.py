@@ -33,7 +33,7 @@ environment = habitat.Env(config=config)
 
 optimizer = Adam(learning_rate=5e-4)
 loss_function = MSE
-agent  = models.RL_Agent(environment, optimizer, loss_function, training_embedding=True, num_actions=3)
+agent  = models.RL_Agent(environment, optimizer, loss_function, training_embedding=False, num_actions=3)
 
 num_episodes = len(environment.episodes)
 random_episodes_threshold = 10

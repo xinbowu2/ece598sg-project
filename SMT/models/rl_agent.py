@@ -69,7 +69,7 @@ class RL_Agent(tf.keras.Model):
 		current_x = self.environment.step(action)['rgb']/255.0
 		self.update_scene_memory(current_x)
 		
-		reward = 1
+		reward = 1.0
 		self.action_list.append(action)
 		self.reward_list.append(reward)
 		if training:
@@ -89,7 +89,6 @@ class RL_Agent(tf.keras.Model):
 		self.target_policy_network.set_weights(self.policy_network.get_weights())
 	
 	def update_model(self, time_step, batch_size=64):
-		pdb.set_trace()
 		batch_sample = random.sample(self.experience_replay, batch_size) 
 		minibatch = tf.concat([x[0] for x in batch_sample], axis=0) #batch of memory for full episode
 
@@ -109,22 +108,24 @@ class RL_Agent(tf.keras.Model):
 		action_batch = tf.convert_to_tensor([x[1] for x in batch_sample])[:, time_step]
 		reward_batch = tf.convert_to_tensor([x[2] for x in batch_sample])[:, time_step]
 
-		target = self.policy_network(state_batch, memory_batch)[:,0,:]
-		q_vals = copy.deepcopy(target)
+		q_vals = self.policy_network(state_batch, memory_batch)[:,0,:]
+		target = copy.deepcopy(q_vals)
 
 
 		indices = tf.stack([tf.range(batch_size), action_batch], axis=1)
-
 		if time_step == horizon-1:
 			updates = reward_batch
 		else:
 			t = self.target_policy_network(next_state_batch, next_memory_batch)[:,0,:] #? what is shape of t? batch_size*actions
 			updates = reward_batch + self.gamma*tf.math.reduce_max(t, axis=1)
 		
-		tf.tensor_scatter_nd_update(target, indices, updates)
+		target = tf.tensor_scatter_nd_update(target, indices, updates)
 		
 		with tf.GradientTape() as tape:
 			loss = self.loss_function(target, q_vals)
+			tape.watch(self.policy_network.trainable_variables)
 		gradients = tape.gradient(loss, self.policy_network.trainable_variables)
+		pdb.set_trace()
+	
 		self.optimizer.apply_gradients(zip(gradients, self.policy_network.trainable_variables))
 
