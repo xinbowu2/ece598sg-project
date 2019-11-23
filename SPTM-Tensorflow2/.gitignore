@@ -23,6 +23,7 @@
 !*.tgn
 !*.cfg
 build/*
+!*.yaml
 !build/*.sh
 !build/*.py
 experiments/*

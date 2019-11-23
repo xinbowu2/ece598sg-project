@@ -1,21 +1,50 @@
 from train.train_setup import *
+import habitat
 import pdb
+import random
+
 def data_generator():
-	game = doom_navigation_setup(DEFAULT_RANDOM_SEED, TRAIN_WAD)
+	config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
+	config.defrost()  
+	config.DATASET.DATA_PATH = 'data/datasets/pointnav/gibson/v1/val/val.json.gz'
+	config.DATASET.SCENES_DIR = 'data/scene_datasets/gibson'
+	config.SIMULATOR.SCENE = "data/scene_datasets/gibson/Lynchburg.glb"
+	config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
+	config.SIMULATOR.TURN_ANGLE = 30
+	#config.SIMULATOR.TASK.MEASUREMENTS = ['COLLISIONS']  
+	#config.TASK.SENSORS = ["PROXIMITY_SENSOR"]
+	config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
+	#config.SEED = random.randint(1, ACTION_MAX_EPOCHS)
+	config.freeze()
+	# print(config)
+	env = habitat.Env(config=config)
+	r = random.randint(1, len(env.episodes))
+	env._current_episode = env.episodes[r]
+	
+	action_mapping = {      
+		0: 'move_forward',
+		1: 'turn left',
+		2: 'turn right',
+		3: 'stop'
+	}
+
 	while True:
 		x_result = []
 		y_result = []
 		for episode in range(EDGE_EPISODES):
-			game.set_doom_map(MAP_NAME_TEMPLATE % random.randint(MIN_RANDOM_TEXTURE_MAP_INDEX,
-																													 MAX_RANDOM_TEXTURE_MAP_INDEX))
-			game.new_episode()
+			current_x = env.reset()['rgb']/255.0
+			
 			x = []
 			for _ in range(MAX_CONTINUOUS_PLAY):
 				pdb.set_trace()
-				current_x = game.get_state().screen_buffer.transpose(VIZDOOM_TO_TF)
-				action_index = random.randint(0, ACTION_CLASSES - 1)
-				game_make_action_wrapper(game, ACTIONS_LIST[action_index], TRAIN_REPEAT)
+				action_index = random.randint(0, len(action_mapping)-2)
+				current_y = action_index
 				x.append(current_x)
+				current_x = env.step(action_index)['rgb']/255.0
+					
+				if env.episode_over:
+					current_x = env.reset()['rgb']/255.0
+					break
 			first_second_label = []
 			current_first = 0
 			while True:
@@ -64,7 +93,7 @@ def data_generator():
 			to_index = (batch_index + 1) * BATCH_SIZE
 			yield (np.array(x_result[from_index:to_index]),
 						 tf.keras.utils.to_categorical(np.array(y_result[from_index:to_index]),
-																				num_classes=EDGE_CLASSES))
+													num_classes=EDGE_CLASSES))
 
 if __name__ == '__main__':
 	logs_path, current_model_path = setup_training_paths(EXPERIMENT_OUTPUT_FOLDER)
@@ -74,8 +103,8 @@ if __name__ == '__main__':
 	model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
 	callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
 										tf.keras.callbacks.ModelCheckpoint(current_model_path,
-																										period=MODEL_CHECKPOINT_PERIOD)]
+										period=MODEL_CHECKPOINT_PERIOD)]
 	model.fit_generator(data_generator(),
-											steps_per_epoch=DUMP_AFTER_BATCHES,
-											epochs=EDGE_MAX_EPOCHS,
-											callbacks=callbacks_list)
+						steps_per_epoch=DUMP_AFTER_BATCHES,
+						epochs=EDGE_MAX_EPOCHS,
+						callbacks=callbacks_list)
