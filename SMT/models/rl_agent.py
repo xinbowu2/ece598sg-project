@@ -52,7 +52,7 @@ class RL_Agent(tf.keras.Model):
 		self.scene_memory.reset()
 		self.environment._current_episode = self.environment.episodes[episode_idx]
 		current_x = self.environment.reset()['rgb']/255.0
-		self.update_scene_memory(current_x)
+		self.update_scene_memory(current_x) 
 		self.action_list = []
 		self.reward_list = []
 
@@ -73,7 +73,7 @@ class RL_Agent(tf.keras.Model):
 		self.action_list.append(action)
 		self.reward_list.append(reward)
 		if training:
-			self.update_model(len(self.scene_memory.memory)-1, batch_size)
+			self.update_model(len(self.scene_memory.memory)-2, batch_size) # discard the last observation? 
 		
 		if self.environment.episode_over:
 			self.store_episode(tf.stack(self.scene_memory.memory, axis=1), self.action_list, self.reward_list)
@@ -89,43 +89,43 @@ class RL_Agent(tf.keras.Model):
 		self.target_policy_network.set_weights(self.policy_network.get_weights())
 	
 	def update_model(self, time_step, batch_size=64):
-		batch_sample = random.sample(self.experience_replay, batch_size) 
-		minibatch = tf.concat([x[0] for x in batch_sample], axis=0) #batch of memory for full episode
-
-		#size of minibatch should be (batch_size, Horizon, 128)
-		horizon = minibatch.shape[1]-1 #time goes from 0 to horizon-1
-		#time_step = np.random.random_integers(1,horizon-1)
-		
-		memory_batch = minibatch[:,0:time_step+1,:] #hold out memory from 0 to time_step both included
-
-		state_batch = minibatch[:,time_step,:]
-
-		next_state_batch = minibatch[:,time_step+1,:]
-
-		next_memory_batch = minibatch[:, 0:time_step+2, :]
-
-		#action_batch should be of size batch_size*1
-		action_batch = tf.convert_to_tensor([x[1] for x in batch_sample])[:, time_step]
-		reward_batch = tf.convert_to_tensor([x[2] for x in batch_sample])[:, time_step]
-
-		q_vals = self.policy_network(state_batch, memory_batch)[:,0,:]
-		target = copy.deepcopy(q_vals)
-
-
-		indices = tf.stack([tf.range(batch_size), action_batch], axis=1)
-		if time_step == horizon-1:
-			updates = reward_batch
-		else:
-			t = self.target_policy_network(next_state_batch, next_memory_batch)[:,0,:] #? what is shape of t? batch_size*actions
-			updates = reward_batch + self.gamma*tf.math.reduce_max(t, axis=1)
-		
-		target = tf.tensor_scatter_nd_update(target, indices, updates)
-		
 		with tf.GradientTape() as tape:
+			batch_sample = random.sample(self.experience_replay, batch_size) 
+			minibatch = tf.concat([x[0] for x in batch_sample], axis=0) #batch of memory for full episode
+
+			#size of minibatch should be (batch_size, Horizon, 128)
+			horizon = minibatch.shape[1]-1 #time goes from 0 to horizon-1
+			#time_step = np.random.random_integers(1,horizon-1)
+		
+			memory_batch = minibatch[:,0:time_step+1,:] #hold out memory from 0 to time_step both included
+
+			state_batch = minibatch[:,time_step,:]
+			if time_step < horizon-1:
+				next_state_batch = minibatch[:,time_step+1,:]
+
+				next_memory_batch = minibatch[:, 0:time_step+2, :]
+
+			#action_batch should be of size batch_size*1
+			action_batch = tf.convert_to_tensor([x[1] for x in batch_sample])[:, time_step]
+			reward_batch = tf.convert_to_tensor([x[2] for x in batch_sample])[:, time_step]
+
+			q_vals = self.policy_network(state_batch, memory_batch)[:,0,:]
+			target = copy.deepcopy(q_vals)
+
+
+			indices = tf.stack([tf.range(batch_size), action_batch], axis=1)
+			if time_step == horizon-1:
+				updates = reward_batch
+			else:
+				t = self.target_policy_network(next_state_batch, next_memory_batch)[:,0,:] #? what is shape of t? batch_size*actions
+				updates = reward_batch + self.gamma*tf.math.reduce_max(t, axis=1)
+		
+			target = tf.tensor_scatter_nd_update(target, indices, updates)
+		
 			loss = self.loss_function(target, q_vals)
-			tape.watch(self.policy_network.trainable_variables)
+			#tape.watch(state_batch)
 		gradients = tape.gradient(loss, self.policy_network.trainable_variables)
-		pdb.set_trace()
+		#pdb.set_trace()
 	
 		self.optimizer.apply_gradients(zip(gradients, self.policy_network.trainable_variables))
-
+		print(tf.reduce_sum(loss))
