@@ -124,8 +124,13 @@ class RL_Agent(tf.keras.Model):
 		
 			loss = self.loss_function(target, q_vals)
 			#tape.watch(state_batch)
-		gradients = tape.gradient(loss, self.policy_network.trainable_variables)
+		trainable_variables = self.policy_network.trainable_variables
+		if self.training_embedding:
+			trainable_variables.append(self.scene_memory.trainable_variables) 
+
+		# freeze embedding networks when training the policy network
+		gradients = tape.gradient(loss, trainable_variables)
+		self.optimizer.apply_gradients(zip(gradients, trainable_variables))
+
 		#pdb.set_trace()
-	
-		self.optimizer.apply_gradients(zip(gradients, self.policy_network.trainable_variables))
 		print(tf.reduce_sum(loss))
