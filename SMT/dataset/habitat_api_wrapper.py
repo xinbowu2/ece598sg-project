@@ -109,7 +109,7 @@ if __name__ == '__main__':
   args = parse_args()
 
   num_steps = 100
-  actions = [random.choice([0,1,2,3 for i in range(num_steps)])]
+  actions = [random.choice([0,1,2,3]) for i in range(num_steps)]
 
 
   habitat_config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
