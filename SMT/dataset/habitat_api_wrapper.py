@@ -82,7 +82,7 @@ class HabitatWrapper:
 
     return self.reward_rate
 
-'''
+
 if __name__ == '__main__':
   import random
 
@@ -128,7 +128,8 @@ if __name__ == '__main__':
   for i in range(num_steps):
     env.set_action(actions[i])
     env.advance_action()
-'''
+    print('current position: (%i, %i), last cell position: (%i, %i), current_reward: %i' % (self.curr_x, self.curr_y, self.last_cell_x, self.last_cell_y, self.get_reward()))
+
 
     
 
