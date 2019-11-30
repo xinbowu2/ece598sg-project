@@ -48,12 +48,13 @@ class RL_Agent(tf.keras.Model):
 		self.reward_list = []
 
 	#choose which action to take using epsilon-greedy policy
-	def sample_action(self):
-		if np.random.rand() <= self.epsilon:
-			return random.randint(0, self.action_size-2)
-		else:
+	def sample_action(self, validating=False):
+		if validating or np.random.rand() > self.epsilon: 
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
 			return tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
+		else:
+			return random.randint(0, self.action_size-2)
+
 
 	#returns the observation after taking the action
 	def step(self, action, batch_size=64, training=False):
@@ -73,6 +74,8 @@ class RL_Agent(tf.keras.Model):
 			self.memory = None
 			self.action_list = []
 			self.reward_list = []
+
+		return reward 
 
 	#stores a episode in the replay-buffer
 	def store_episode(self, memory, action_list, reward_list):
