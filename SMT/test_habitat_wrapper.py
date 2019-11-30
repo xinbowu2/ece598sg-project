@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
   args = parse_args()
 
-  num_steps = 100
+  num_steps = 200
   actions = [random.choice([0,1,2,3]) for i in range(num_steps)]
 
 
