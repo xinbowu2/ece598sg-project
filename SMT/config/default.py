@@ -28,10 +28,17 @@ _C.DATASET.DATASET = 'gibson'
 _C.DATASET.NUM_ACTIONS = 3
 _C.DATASET.TRAIN_SET = ''
 _C.DATASET.TEST_SET = ''
+#_C.DATASET.ACTION_MAPPING = {0: 'move_forward', 1: 'turn left', 2: 'turn right', 3: 'stop'}
+_C.DATASET.ACTION_NAMES = ['move_forward', 'turn left', 'turn right', 'stop']
 
+_C.TASK = CN()
+_C.TASK.NAME = 'coverage'
+_C.TASK.MODUALITIES = ['image']
+_C.TASK.CELL_HEIGHT = 0.5
+_C.TASK.CELL_WIDTH = 0.5
+_C.TASK.REWARD_RATE = 5
 # training
 _C.TRAIN = CN()
-
 
 # testing
 _C.TEST = CN()
