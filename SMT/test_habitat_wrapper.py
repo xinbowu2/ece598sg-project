@@ -36,8 +36,8 @@ if __name__ == '__main__':
   habitat_config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
   habitat_config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
   habitat_config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
-  habitat_config.SIMULATOR.TURN_ANGLE = 30
-  habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = 30
+  habitat_config.SIMULATOR.TURN_ANGLE = 45
+  habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = 60
 
   habitat_config.freeze()
 
