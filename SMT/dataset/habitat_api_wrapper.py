@@ -6,7 +6,7 @@ import numpy as np
 class HabitatWrapper:
 
   def __init__(self, config, habitat_config):
-    self.action_names = config.DATASET.ACTION_NAMES
+    self.action_names = config.TASK.ACTION_NAMES
     self.action_mapping = {action_name : index for index, action_name in enumerate(self.action_names)}
     self.action_mapping.update({index : action_name for index, action_name in enumerate(self.action_names)})
     self.modalities = config.TASK.MODUALITIES
@@ -40,6 +40,9 @@ class HabitatWrapper:
     state = self.observations.copy().add('prev_action', self.prev_action)
 
     return self.observations
+
+  def get_env(self):
+    return self.env
 
   def set_action(self, action):
     if action in self.action_mapping.keys():
@@ -89,55 +92,3 @@ class HabitatWrapper:
     self.last_cell_y = curr_cell_pos[1]
 
     return self.reward_rate
-
-'''
-if __name__ == '__main__':
-  import random
-  # from .. import config
-  from default import update_config
-  import argparse
-
-  def parse_args():
-    parser = argparse.ArgumentParser(description='Train segmentation network')
-    
-    parser.add_argument('--cfg',
-                        help='experiment configure file name',
-                        required=True,
-                        type=str)
-    parser.add_argument('opts',
-                        help="Modify config options using the command-line",
-                        default=None,
-                        nargs=argparse.REMAINDER)
-
-    args = parser.parse_args()
-    update_config(config, args)
-
-    return args
-
-  args = parse_args()
-
-  num_steps = 100
-  actions = [random.choice([0,1,2,3]) for i in range(num_steps)]
-
-
-  habitat_config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
-  habitat_config.defrost()  
-  habitat_config.DATASET.DATA_PATH = '../data/datasets/pointnav/gibson/v1/val/val.json.gz'
-  habitat_config.DATASET.SCENES_DIR = '../data/scene_datasets/gibson'
-  habitat_config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
-  habitat_config.SIMULATOR.TURN_ANGLE = 30
-  habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
-
-  habitat_config.freeze()
-
-  env = HabitatWrapper(config, habitat_config)
-  env.reset()
-  
-  for i in range(num_steps):
-    env.set_action(actions[i])
-    env.advance_action()
-    print('current position: (%i, %i), last cell position: (%i, %i), current_reward: %i' % (self.curr_x, self.curr_y, self.last_cell_x, self.last_cell_y, self.get_reward()))
-'''
-
-    
-
