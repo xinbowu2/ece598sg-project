@@ -1,30 +1,30 @@
+import random
+import argparse
+import habitat
+
+import config
+from config import update_config
+from config import configuration
+from dataset import HabitatWrapper  
+
+def parse_args():
+  parser = argparse.ArgumentParser(description='Train segmentation network')
+  
+  parser.add_argument('--cfg',
+                      help='experiment configure file name',
+                      required=True,
+                      type=str)
+  parser.add_argument('opts',
+                      help="Modify config options using the command-line",
+                      default=None,
+                      nargs=argparse.REMAINDER)
+
+  args = parser.parse_args()
+  update_config(configuration, args)
+
+  return args
+
 if __name__ == '__main__':
-  import random
-  import argparse
-  import habitat
-
-  import config
-  from config import update_config
-  from config import default_config
-  from dataset import HabitatWrapper  
-
-  def parse_args():
-    parser = argparse.ArgumentParser(description='Train segmentation network')
-    
-    parser.add_argument('--cfg',
-                        help='experiment configure file name',
-                        required=True,
-                        type=str)
-    parser.add_argument('opts',
-                        help="Modify config options using the command-line",
-                        default=None,
-                        nargs=argparse.REMAINDER)
-
-    args = parser.parse_args()
-    update_config(default_config, args)
-
-    return args
-
   args = parse_args()
 
   num_steps = 200
@@ -38,10 +38,9 @@ if __name__ == '__main__':
   habitat_config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
   habitat_config.SIMULATOR.TURN_ANGLE = 45
   habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = 60
-
   habitat_config.freeze()
 
-  env = HabitatWrapper(default_config, habitat_config)
+  env = HabitatWrapper(configuration, habitat_config)
   env.reset()
   
   for i in range(num_steps):
