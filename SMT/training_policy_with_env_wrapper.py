@@ -6,6 +6,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MSE 
 import numpy as np
 import progressbar
+import logging
 
 import models
 from models import RL_Agent_with_env_wrapper
@@ -14,6 +15,7 @@ import config
 from config import update_config
 from config import configuration
 from dataset import HabitatWrapper  
+from utils import create_logger, validate
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Train segmentation network')
@@ -35,6 +37,11 @@ def parse_args():
 if __name__ == '__main__':
 	horizon = configuration.TASK.HARIZON
 	batch_size = configuration.TRAIN.BATCH_SIZE
+	num_iterations = configuration.TRAIN.NUM_ITERATIONS
+	step =  num_iterations//100
+
+	logger, final_output_dir, tb_log_dir = create_logger(
+        configuration, args.cfg, 'train')
 	
 	habitat_config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
 	habitat_config.defrost()  
@@ -64,27 +71,30 @@ if __name__ == '__main__':
 	random_episodes_threshold = configuration.TASK.RANDOM_EPISODES_THRESHOLD
 	align_model_threshold = configuration.TASK.ALIGH_MODEL_THRESHOLD
 
-	for e in range(0, num_episodes):
-		# Reset the enviroment
-		print("EPISODE ", e)
-		agent.reset(e) #reset the environment, sets the episode-index to e
-
-		if e < random_episodes_threshold:
-			training = False
-		else:
-			training = True 
-
-		bar = progressbar.ProgressBar(maxval=horizon/10, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+	for i in range(num_iterations):
+		bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 		bar.start()
+		for e in range(0, num_episodes):
+			# Reset the enviroment
+		    #logger.info('EPISODE {}'.format(e))
+			agent.reset(e) #reset the environment, sets the episode-index to e
 
-		if e%align_model_threshold == 1 and training:
-			agent.align_target_model()
-		for timestep in range(horizon):
-			action = agent.sample_action()
-			agent.step(action, training=training)    
+			if e < random_episodes_threshold:
+				training = False
+			else:
+				training = True 
 
-			if timestep%10 == 0:
-				bar.update(timestep/10 + 1)
+			if e%align_model_threshold == 1 and training:
+				agent.align_target_model()
+			for timestep in range(horizon):
+				action = agent.sample_action()
+				agent.step(action, training=training)    
+
+		if i%(step) == 0:
+			bar.update(i//step + 1)
 		
 		bar.finish()
+		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations))
+		validate(i, logger, configuration, environment, agent)
 
+	

@@ -21,6 +21,9 @@ _C.CUDNN.ENABLED = True
 
 _C.LOSS = CN()
 
+_C.MODEL = CN()
+_C.MODEL.NAME = 'smt'
+
 # DATASET related params
 _C.DATASET = CN()
 _C.DATASET.ROOT = ''
@@ -46,6 +49,7 @@ _C.TRAIN = CN()
 _C.TRAIN.BATCH_SIZE = 64
 _C.TRAIN.OPTIMIZER = 'adam'
 _C.LR = 5e-4
+_C.NUM_ITERATIONS = 100
 
 # testing
 _C.TEST = CN()

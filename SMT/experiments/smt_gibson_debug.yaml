@@ -8,8 +8,11 @@ LOG_DIR: 'log'
 WORKERS: 4
 PRINT_FREQ: 20
 
+MODEL: 
+  NAME: 'smt'
+
 DATASET:
-  DATASET: gibson
+  DATASET: 'gibson'
   ROOT: 'data/'
   TEST_SET: ''
   TRAIN_SET: ''
@@ -30,6 +33,7 @@ TRAIN:
   BATCH_SIZE: 64
   OPTIMIZER: 'adam'
   LR: 5e-4
+  NUM_ITERATIONS: 100
   
 #TEST:
 
