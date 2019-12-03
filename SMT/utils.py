@@ -39,7 +39,7 @@ def create_logger(cfg, cfg_name, phase='train'):
 
     return logger, str(final_output_dir), str(tensorboard_log_dir)
 
-def validate(training_iterations, logger, configs, val_environment, agent):
+def validate(training_iterations, logger, configs, agent):
 	horizon = configuration.TASK.HARIZON
 
 	sum_reward = 0
@@ -48,6 +48,13 @@ def validate(training_iterations, logger, configs, val_environment, agent):
 
 	bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 	bar.start()
+	habitat_config.defrost()
+	habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/val_mini/val_mini.json.gz'
+	habitat_config.freeze()
+	agent.environment.get_env().reconfigure(habitat_config)
+
+	num_episodes = len(agent.environment.get_env().episodes)
+	
 	for e in range(0, num_episodes):
 		# Reset the enviroment
 		#print("EPISODE ", e)
