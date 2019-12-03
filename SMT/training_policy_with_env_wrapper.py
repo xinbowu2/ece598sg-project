@@ -7,6 +7,7 @@ from tensorflow.keras.losses import MSE
 import numpy as np
 import progressbar
 import logging
+import os
 
 import models
 from models import RL_Agent_with_env_wrapper
@@ -40,12 +41,16 @@ if __name__ == '__main__':
 	num_iterations = configuration.TRAIN.NUM_ITERATIONS
 	step =  num_iterations//100
 
+	train_scene_list = os.listdir('./data/datasets/pointnav/gibson/v1/train/content/')
+	episodes_per_train_scene = configuration.TRAIN.EPISODES_PER_SCENE
+	num_train_scenes = len(train_scene_list)
+
 	logger, final_output_dir, tb_log_dir = create_logger(
         configuration, args.cfg, 'train')
 	
 	habitat_config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
 	habitat_config.defrost()  
-	habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/val/val.json.gz'
+	#habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/train/content'
 	habitat_config.DATASET.SCENES_DIR = '/data/scene_datasets/gibson'
 	habitat_config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
 	habitat_config.SIMULATOR.TURN_ANGLE = 45
@@ -67,34 +72,44 @@ if __name__ == '__main__':
 
 	agent  = models.RL_Agent(environment, optimizer, loss_function, training_embedding=False, num_actions=configuration.TASK.NUM_ACTIONS)
 
-	num_episodes = len(environment.env.episodes)
+	#num_episodes = len(environment.env.episodes)
 	random_episodes_threshold = configuration.TASK.RANDOM_EPISODES_THRESHOLD
 	align_model_threshold = configuration.TASK.ALIGH_MODEL_THRESHOLD
 
+	n = 0
 	for i in range(num_iterations):
-		bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
-		bar.start()
-		for e in range(0, num_episodes):
-			# Reset the enviroment
-		    #logger.info('EPISODE {}'.format(e))
-			agent.reset(e) #reset the environment, sets the episode-index to e
+		 bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+		 bar.start()
+		 random.shuffle(train_scene_list)
 
-			if e < random_episodes_threshold:
-				training = False
-			else:
-				training = True 
+		 for scene in train_scene_list:
+		 	habitat_config.defrost()
+		 	habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/train/content/' + scene
+		 	habitat_config.freeze()
+		 	agent.environment.get_env().reconfigure(habitat_config)
+		 	#agent.reset() # ??
 
-			if e%align_model_threshold == 1 and training:
-				agent.align_target_model()
-			for timestep in range(horizon):
-				action = agent.sample_action()
-				agent.step(action, training=training)    
+		 	num_episodes = len(agent.environment.get_env().episodes)
+		 	sampled_episodes = random.sample(range(0, num_episodes), episodes_per_train_scene)
+		 	
+		 	for e in sampled_episodes:
+		 		agent.reset(e)
+		 		if n < random_episodes_threshold:
+					training = False
+				else:
+					training = True 
 
-		if i%(step) == 0:
-			bar.update(i//step + 1)
-		
+				if n%align_model_threshold == 1 and training:
+					agent.align_target_model()
+				for timestep in range(horizon):
+					action = agent.sample_action()
+					agent.step(action, training=training)  
+
+				n += 1
+
 		bar.finish()
 		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations))
 		validate(i, logger, configuration, environment, agent)
+
 
 	
