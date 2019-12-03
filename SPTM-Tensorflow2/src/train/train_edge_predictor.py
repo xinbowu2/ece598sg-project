@@ -6,7 +6,6 @@ import random
 def data_generator():
 	config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
 	config.defrost()  
-	config.DATASET.DATA_PATH = 'data/datasets/pointnav/gibson/v1/val/val.json.gz'
 	config.DATASET.SCENES_DIR = 'data/scene_datasets/gibson'
 	config.SIMULATOR.SCENE = "data/scene_datasets/gibson/Lynchburg.glb"
 	config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
@@ -18,8 +17,7 @@ def data_generator():
 	config.freeze()
 	# print(config)
 	env = habitat.Env(config=config)
-	r = random.randint(1, len(env.episodes))
-	env._current_episode = env.episodes[r]
+	random.shuffle(env.episodes)
 	
 	action_mapping = {      
 		0: 'move_forward',
@@ -36,7 +34,6 @@ def data_generator():
 			
 			x = []
 			for _ in range(MAX_CONTINUOUS_PLAY):
-				pdb.set_trace()
 				action_index = random.randint(0, len(action_mapping)-2)
 				current_y = action_index
 				x.append(current_x)
@@ -87,16 +84,17 @@ def data_generator():
 				current_y = y
 				x_result.append(np.concatenate((current_x, future_x), axis=2))
 				y_result.append(current_y)
-		number_of_batches = len(x_result) / BATCH_SIZE
+		number_of_batches = int(len(x_result) / BATCH_SIZE)
 		for batch_index in range(number_of_batches):
 			from_index = batch_index * BATCH_SIZE
 			to_index = (batch_index + 1) * BATCH_SIZE
-			yield (np.array(x_result[from_index:to_index]),
-						 tf.keras.utils.to_categorical(np.array(y_result[from_index:to_index]),
-													num_classes=EDGE_CLASSES))
+			pdb.set_trace()
+			x_out = np.array(x_result[from_index:to_index])
+			yield (x_out, tf.keras.utils.to_categorical(np.array(y_result[from_index:to_index]),
+									num_classes=EDGE_CLASSES))
 
 if __name__ == '__main__':
-	logs_path, current_model_path = setup_training_paths(EXPERIMENT_OUTPUT_FOLDER)
+	logs_path, current_model_path = setup_training_paths('../experiments/edge/default_experiment')
 	model = SiameseResnet(EDGE_CLASSES)
 	#model = EDGE_NETWORK(((1 + EDGE_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), EDGE_CLASSES)
 	adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
