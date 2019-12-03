@@ -1,21 +1,13 @@
 import tensorflow as tf
 from models.scene_memory import SceneMemory
 from models.att_policy import AttentionPolicyNet
+import dataset
 #from config.models import *
 import collections
 import numpy as np
 import random
 import copy
 import pdb
-
-action_mapping = {      
-	  0: 'move_forward',
-	  1: 'turn left',
-	  2: 'turn right',
-	  3: 'stop'
-}
-
-batch_size = 5
 
 class RL_Agent(tf.keras.Model):
 
@@ -45,31 +37,33 @@ class RL_Agent(tf.keras.Model):
 		obs = {}
 		obs['image'] = image
 		self.scene_memory(obs, training_embedding=self.training_embedding)
-		return
 
 	#resets the environment and sets current_episode number to r
 	def reset(self, episode_idx):
 		self.scene_memory.reset()
-		self.environment._current_episode = self.environment.episodes[episode_idx]
+		self.environment.get_env()._current_episode = self.environment.get_env().episodes[episode_idx]
 		current_x = self.environment.reset()['rgb']/255.0
 		self.update_scene_memory(current_x) 
 		self.action_list = []
 		self.reward_list = []
 
 	#choose which action to take using epsilon-greedy policy
-	def sample_action(self):
-		if np.random.rand() <= self.epsilon:
-			return random.randint(0, len(action_mapping)-2)
-		else:
+	def sample_action(self, validating=False):
+		if validating or np.random.rand() > self.epsilon: 
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
 			return tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
+		else:
+			return random.randint(0, self.action_size-2)
+
 
 	#returns the observation after taking the action
-	def step(self, action, training=False):
-		current_x = self.environment.step(action)['rgb']/255.0
+	def step(self, action, batch_size=64, training=False):
+		#current_x = self.environment.step(action)['rgb']/255.0
+		self.environment.set_action(action)
+		current_x = self.environment.advance_action()
 		self.update_scene_memory(current_x)
 		
-		reward = 1.0
+		reward = self.environment.get_reward()
 		self.action_list.append(action)
 		self.reward_list.append(reward)
 		if training:
@@ -80,6 +74,8 @@ class RL_Agent(tf.keras.Model):
 			self.memory = None
 			self.action_list = []
 			self.reward_list = []
+
+		return reward 
 
 	#stores a episode in the replay-buffer
 	def store_episode(self, memory, action_list, reward_list):

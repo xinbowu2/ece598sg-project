@@ -32,13 +32,13 @@ class SceneMemory(tf.keras.Model):
 		self.memory = []
 		return
 
-	def call(self, observations, training=None, training_embedding=False):
-		curr_embedding  = self._update(observations, training, training_embedding)
+	def call(self, observations, timestep=None, training=None, training_embedding=False):
+		curr_embedding  = self._update(observations, timestep, training, training_embedding)
 		self.obs_embedding = curr_embedding
 		return curr_embedding, tf.stack(self.memory, axis=1)
 
 
-	def _update(self, observations, training=None, training_embedding=False):
+	def _update(self, observations, timestep=None, training=None, training_embedding=False):
 		#observations['image'] should be a 4D tensor (batch, height, width, channels)
 		#input will be (height, width, channels)
 		for modality in self.modalities:
@@ -50,7 +50,7 @@ class SceneMemory(tf.keras.Model):
 
 		observations['image'] = tf.transpose(observations['image'], perm=[0, 3, 1, 2])
 
-		curr_embedding = self._embed(observations, training)
+		curr_embedding = self._embed(observations, timestep, training)
 
 		if training_embedding: 
 			self.memory = [curr_embedding]
@@ -60,8 +60,8 @@ class SceneMemory(tf.keras.Model):
 		return curr_embedding
 
 
-	def _embed(self, observations, training=None):
-		embeddings = []
+	def _embed(self, observations, timestep=None, training=None):
+		embeddings = [tf.math.exp(tf.constant(-float(timestep)))]
 
 		for modality in self.modalities:
 			if modality == 'image':

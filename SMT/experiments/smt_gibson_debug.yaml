@@ -8,16 +8,37 @@ LOG_DIR: 'log'
 WORKERS: 4
 PRINT_FREQ: 20
 
+MODEL: 
+  NAME: 'smt'
+
 DATASET:
-  DATASET: gibson
+  DATASET: 'gibson'
   ROOT: 'data/'
   TEST_SET: ''
   TRAIN_SET: ''
-  NUM_ACTIONS: 3
+
+TASK:
+  NAME: 'coverage'
+  MODUALITIES: ['image']
+  CELL_HEIGHT: 0.4
+  CELL_WIDTH: 0.4
+  REWARD_RATE: 5
+  NUM_ACTIONS: 4
+  ACTION_NAMES: ['move_forward', 'turn left', 'turn right', 'stop']
+  RANDOM_EPISODES_THRESHOLD: 1000
+  ALIGH_MODEL_THRESHOLD: 20
+  HORIZON: 100
+
+TRAIN:
+  BATCH_SIZE: 64
+  OPTIMIZER: 'adam'
+  LR: 5e-4
+  NUM_ITERATIONS: 100
+  EPISODES_PER_SCENE: 20
+  
+#TEST:
 
 LOSS:
+    TYPE: 'mse'
   
-TRAIN:
-  
-TEST:
   
