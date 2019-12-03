@@ -43,7 +43,6 @@ if __name__ == '__main__':
 
 	train_scene_list = os.listdir('./data/datasets/pointnav/gibson/v1/train/content/')
 	episodes_per_train_scene = configuration.TRAIN.EPISODES_PER_SCENE
-	num_train_scenes = len(train_scene_list)
 
 	logger, final_output_dir, tb_log_dir = create_logger(
         configuration, args.cfg, 'train')
@@ -109,7 +108,7 @@ if __name__ == '__main__':
 
 		bar.finish()
 		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations))
-		validate(i, logger, configuration, environment, agent)
+		validate(i, logger, configuration, habitat_config, agent)
 
 
 	

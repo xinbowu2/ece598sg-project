@@ -39,7 +39,7 @@ def create_logger(cfg, cfg_name, phase='train'):
 
     return logger, str(final_output_dir), str(tensorboard_log_dir)
 
-def validate(training_iterations, logger, configs, agent):
+def validate(training_iterations, logger, configs, habitat_configs, agent):
 	horizon = configuration.TASK.HARIZON
 
 	sum_reward = 0
@@ -54,7 +54,7 @@ def validate(training_iterations, logger, configs, agent):
 	agent.environment.get_env().reconfigure(habitat_config)
 
 	num_episodes = len(agent.environment.get_env().episodes)
-	
+
 	for e in range(0, num_episodes):
 		# Reset the enviroment
 		#print("EPISODE ", e)
