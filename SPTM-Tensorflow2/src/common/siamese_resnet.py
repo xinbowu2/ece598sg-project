@@ -35,10 +35,10 @@ class SiameseResnet(tf.keras.Model):
 
 	def call(self, inputs, training=None, mask=None):
 		pdb.set_trace()
-		first_branch = self.res(inputs[:,:,:,:3])
-		second_branch = self.res(inputs[:,:,:,3:])
+		first_branch = self.res(inputs[:,:,:,:3]) #embedding for first observation
+		second_branch = self.res(inputs[:,:,:,3:]) #embedding for second observation
 
-		raw_result = np.concatenate([first_branch, second_branch])
+		raw_result = np.concatenate([first_branch, second_branch], axis=1)
 
 		x = self.bn(raw_result)
 		x = tf.nn.relu(x)
