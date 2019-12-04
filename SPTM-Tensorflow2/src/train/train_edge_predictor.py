@@ -6,13 +6,13 @@ import random
 def data_generator():
 	config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
 	config.defrost()
+	config.DATASET.SPLIT = 'train_mini'
 	config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
 	#config.SEED = random.randint(1, ACTION_MAX_EPOCHS)
 	config.freeze()
 	# print(config)
 	env = habitat.Env(config=config)
 	random.shuffle(env.episodes)
-	
 	action_mapping = {      
 		0: 'move_forward',
 		1: 'turn left',
