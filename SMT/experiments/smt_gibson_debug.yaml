@@ -23,8 +23,8 @@ TASK:
   CELL_HEIGHT: 0.4
   CELL_WIDTH: 0.4
   REWARD_RATE: 5
-  NUM_ACTIONS: 4
-  ACTION_NAMES: ['move_forward', 'turn left', 'turn right', 'stop']
+  NUM_ACTIONS: 3
+  ACTION_NAMES: ['move_forward', 'turn left', 'turn right']
   RANDOM_EPISODES_THRESHOLD: 1000
   ALIGH_MODEL_THRESHOLD: 20
   HORIZON: 100

@@ -4,3 +4,4 @@ from __future__ import print_function
 from models.scene_memory import SceneMemory
 from models.att_policy import AttentionPolicyNet
 from models.rl_agent import RL_Agent
+from models import rl_agent_with_env_wrapper

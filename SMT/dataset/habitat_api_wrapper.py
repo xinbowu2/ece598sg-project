@@ -73,7 +73,7 @@ class HabitatWrapper:
     # calculate displacement from last cell position
     dx = self.curr_x - self.last_cell_x 
     dy = self.curr_y - self.last_cell_y
-    print('dx,dy: %f, %f'%(dx, dy))
+    #print('dx,dy: %f, %f'%(dx, dy))
     # calculate new cell position, if the agent enters a new cell
     if np.abs(dx) > self.cell_width/2:
       curr_cell_pos[0] += np.sign(dx)*self.cell_width
