@@ -1,11 +1,17 @@
 from train.train_setup import *
 
+
+def preprocess(x, y):
+  x = tf.image.per_image_standardization(x)
+  return x, y
+
+
 def main():
     (x, y), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
     # Instantiate the Dataset class.
-    train_dataset = tf.data.Dataset.from_tensor_slices((x, y)).shuffle(50000).batch(128, drop_remainder=True)
-    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+    train_dataset = tf.data.Dataset.from_tensor_slices((x, y)).map(preprocess).shuffle(50000).batch(128, drop_remainder=True)
+    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).map(preprocess).batch(128, drop_remainder=True)
 
     model = ResNet18(3)
     adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
