@@ -1,14 +1,10 @@
 DATASET:
   TYPE: PointNav-v1
   SPLIT: train
-  SCENES_DIR = 'data/scene_datasets/gibson'
   POINTNAVV1:
     DATA_PATH: data/datasets/pointnav/gibson/v1/{split}/{split}.json.gz
 SIMULATOR:
-  SCENE = "data/scene_datasets/gibson/Lynchburg.glb"
-  TURN_ANGLE = 30
+  SCENE: data/scene_datasets/gibson/Lynchburg.glb
+  TURN_ANGLE: 30
   AGENT_0:
-    SENSORS = ['RGB_SENSOR'] 
-SENSOR:
-  HEIGHT: 256
-  WIDTH: 256
+    SENSORS: ["RGB_SENSOR"] 

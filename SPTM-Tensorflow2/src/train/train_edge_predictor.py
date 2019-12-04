@@ -24,7 +24,7 @@ def data_generator():
 		x_result = []
 		y_result = []
 		for episode in range(EDGE_EPISODES):
-			current_x = env.reset()['rgb']/255.0
+			current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
 			pdb.set_trace()	
 
 			x = []
@@ -32,10 +32,10 @@ def data_generator():
 				action_index = random.randint(0, len(action_mapping)-2)
 				current_y = action_index
 				x.append(current_x)
-				current_x = env.step(action_index)['rgb']/255.0
+				current_x = center_crop_resize(env.step(action_index)['rgb']/255.0, 256)
 					
 				if env.episode_over:
-					current_x = env.reset()['rgb']/255.0
+					current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
 					break
 			first_second_label = []
 			current_first = 0

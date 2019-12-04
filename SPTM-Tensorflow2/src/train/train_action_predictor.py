@@ -20,12 +20,12 @@ def data_generator():
       3: 'stop'
   }
 
-  current_x = env.reset()['rgb']/255.0
+  current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
   # print(config)
   yield_count = 0
   while True:
     if yield_count >= ACTION_MAX_YIELD_COUNT_BEFORE_RESTART:
-      current_x = env.reset()['rgb']/255.0
+      current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
       yield_count = 0
     x = []
     y = []
@@ -37,10 +37,10 @@ def data_generator():
       current_y = action_index
       x.append(current_x)
       y.append(current_y)
-      current_x = env.step(action_index)['rgb']/255.0
+      current_x = center_crop_resize(env.step(action_index)['rgb']/255.0, 256)
         
       if env.episode_over:
-        current_x = env.reset()['rgb']/255.0
+        current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
         break
 
     first_second_pairs = []

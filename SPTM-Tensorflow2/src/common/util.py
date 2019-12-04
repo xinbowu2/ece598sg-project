@@ -24,6 +24,14 @@ import tensorflow.keras
 import random
 random.seed(DEFAULT_RANDOM_SEED)
 
+def center_crop_resize(image, width):
+  h, w = image.shape[-3], image.shape[-2]
+  if h > w:
+    cropped_image = tf.image.crop_to_bounding_box(image, (h - w) // 2, 0, w, w)
+  else:
+    cropped_image = tf.image.crop_to_bounding_box(image, 0, (w - h) // 2, h, h)
+  return tf.image.resize_images(cropped_image, (width, width))
+
 def mean(numbers):
   return float(sum(numbers)) / max(len(numbers), 1)
 
