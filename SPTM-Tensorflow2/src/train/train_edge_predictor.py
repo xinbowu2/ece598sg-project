@@ -5,13 +5,7 @@ import random
 
 def data_generator():
 	config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
-	config.defrost()  
-	config.DATASET.SCENES_DIR = 'data/scene_datasets/gibson'
-	config.SIMULATOR.SCENE = "data/scene_datasets/gibson/Lynchburg.glb"
-	config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
-	config.SIMULATOR.TURN_ANGLE = 30
-	#config.SIMULATOR.TASK.MEASUREMENTS = ['COLLISIONS']  
-	#config.TASK.SENSORS = ["PROXIMITY_SENSOR"]
+	config.defrost()
 	config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
 	#config.SEED = random.randint(1, ACTION_MAX_EPOCHS)
 	config.freeze()
