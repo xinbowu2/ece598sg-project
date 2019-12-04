@@ -5,7 +5,7 @@ from . import default
 HIGH_RESOLUTION_NET = CN()
 
 SCENE_MEMORY = CN()
-SCENE_MEMORY.MODUALITIES = ['image', 'pose', 'prev_action']
+SCENE_MEMORY.MODUALITIES = ['rgb', 'pose', 'prev_action']
 SCENE_MEMORY.MODUALITY_DIM = [64, 16,16]
 SCENE_MEMORY.REDUCE_FACTOR = 4
 

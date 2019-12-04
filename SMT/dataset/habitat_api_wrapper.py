@@ -24,20 +24,22 @@ class HabitatWrapper:
     self.is_episode_finished = False
 
     
+  def process_observation(self, observations):
+    observations['rgb'] = observations['rgb']/255.0
+    observations['prev_action'] = [0.0, 0.0, 0.0]
+    if self.prev_action:
+      observations['prev_action'][self.prev_action] += 1.0
+    return observations
 
   def reset(self):
-    self.observations = self.env.reset()
+    self.observations = self.process_observation(self.env.reset())
+    
     self.curr_x, _, self.curr_y = self.env.sim.get_agent_state().position
 
     self.last_cell_x, self.last_cell_y = self.curr_x, self.curr_y
     self.visited_cells = []
     self.visited_cells.append([self.curr_x,self.curr_y])
     self.is_episode_finished = self.env.episode_over
-
-    return self.observations
-
-  def get_state(self):
-    state = self.observations.copy().add('prev_action', self.prev_action)
 
     return self.observations
 
@@ -53,8 +55,8 @@ class HabitatWrapper:
   def advance_action(self, tics=1, update=True):
     if update:
       if self.current_action != None:
-        self.observations = self.env.step(self.current_action)
         self.prev_action = self.current_action
+        self.observations = self.process_observation(self.env.step(self.current_action))
         self.curr_x, _, self.curr_y = self.env.sim.get_agent_state().position
         #print('in advance action for position:', self.curr_x, curr_z, self.curr_y)
         self.is_episode_finished = self.env.episode_over
