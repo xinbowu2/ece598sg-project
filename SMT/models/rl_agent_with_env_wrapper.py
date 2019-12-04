@@ -33,17 +33,17 @@ class RL_Agent(tf.keras.Model):
 		self.gamma = gamma
 		#self.policy_network.compile(loss='mse', optimizer=self.optimizer)
 
-	def update_scene_memory(self, image):
+	def update_scene_memory(self, image, timestep=None):
 		obs = {}
 		obs['image'] = image
-		self.scene_memory(obs, training_embedding=self.training_embedding)
+		self.scene_memory(obs, training_embedding=self.training_embedding, timestep=timestep)
 
 	#resets the environment and sets current_episode number to r
 	def reset(self, episode_idx):
 		self.scene_memory.reset()
 		self.environment.get_env()._current_episode = self.environment.get_env().episodes[episode_idx]
 		current_x = self.environment.reset()['rgb']/255.0
-		self.update_scene_memory(current_x) 
+		self.update_scene_memory(current_x, timestep=0) 
 		self.action_list = []
 		self.reward_list = []
 
@@ -57,11 +57,11 @@ class RL_Agent(tf.keras.Model):
 
 
 	#returns the observation after taking the action
-	def step(self, action, batch_size=64, training=False):
+	def step(self, action, timestep=None, batch_size=64, training=False):
 		#current_x = self.environment.step(action)['rgb']/255.0
 		self.environment.set_action(action)
-		current_x = self.environment.advance_action()
-		self.update_scene_memory(current_x)
+		current_x = self.environment.advance_action()['rgb']/255.0
+		self.update_scene_memory(current_x, timestep=timestep)
 		
 		reward = self.environment.get_reward()
 		self.action_list.append(action)
@@ -69,7 +69,7 @@ class RL_Agent(tf.keras.Model):
 		if training:
 			self.update_model(len(self.scene_memory.memory)-2, batch_size) # discard the last observation? 
 		
-		if self.environment.episode_over:
+		if self.environment.is_terminated():
 			self.store_episode(tf.stack(self.scene_memory.memory, axis=1), self.action_list, self.reward_list)
 			self.memory = None
 			self.action_list = []

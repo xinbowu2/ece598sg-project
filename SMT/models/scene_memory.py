@@ -61,14 +61,13 @@ class SceneMemory(tf.keras.Model):
 
 
 	def _embed(self, observations, timestep=None, training=None):
-		embeddings = [tf.math.exp(tf.constant(-float(timestep)))]
-
+		temporal_embeddings = [tf.reshape(tf.math.exp(tf.constant(-float(timestep))),[1,1])]
+		embeddings = []
 		for modality in self.modalities:
 			if modality == 'image':
 				embeddings.append(self.embedding_nets[modality](observations[modality], training))
 			else:
-				embeddings.append(self.embedding_nets[modality](observations[modality]))
-
-		concat_embedding = tf.concat(embeddings, axis=1)
-
+				embeddings.append(self.embedding_nets[modality](observations[modality])
+)
+		concat_embedding = tf.concat([embeddings, temporal_embeddings], axis=2)
 		return self.fc(concat_embedding)
