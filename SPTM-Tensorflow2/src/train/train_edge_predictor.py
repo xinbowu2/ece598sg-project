@@ -5,13 +5,7 @@ import random
 
 def data_generator():
 	config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
-	config.defrost()  
-	config.DATASET.SCENES_DIR = 'data/scene_datasets/gibson'
-	config.SIMULATOR.SCENE = "data/scene_datasets/gibson/Lynchburg.glb"
-	config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
-	config.SIMULATOR.TURN_ANGLE = 30
-	#config.SIMULATOR.TASK.MEASUREMENTS = ['COLLISIONS']  
-	#config.TASK.SENSORS = ["PROXIMITY_SENSOR"]
+	config.defrost()
 	config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
 	#config.SEED = random.randint(1, ACTION_MAX_EPOCHS)
 	config.freeze()
@@ -31,7 +25,8 @@ def data_generator():
 		y_result = []
 		for episode in range(EDGE_EPISODES):
 			current_x = env.reset()['rgb']/255.0
-			
+			pdb.set_trace()	
+
 			x = []
 			for _ in range(MAX_CONTINUOUS_PLAY):
 				action_index = random.randint(0, len(action_mapping)-2)
@@ -82,13 +77,13 @@ def data_generator():
 				future_x = x[second]
 				current_x = x[first]
 				current_y = y
+				pdb.set_trace()
 				x_result.append(np.concatenate((current_x, future_x), axis=2))
 				y_result.append(current_y)
 		number_of_batches = int(len(x_result) / BATCH_SIZE)
 		for batch_index in range(number_of_batches):
 			from_index = batch_index * BATCH_SIZE
 			to_index = (batch_index + 1) * BATCH_SIZE
-			pdb.set_trace()
 			x_out = np.array(x_result[from_index:to_index])
 			yield (x_out, tf.keras.utils.to_categorical(np.array(y_result[from_index:to_index]),
 									num_classes=EDGE_CLASSES))
