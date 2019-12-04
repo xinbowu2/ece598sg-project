@@ -19,7 +19,7 @@ DATASET:
 
 TASK:
   NAME: 'coverage'
-  MODUALITIES: ['image']
+  MODUALITIES: ['rgb']
   CELL_HEIGHT: 0.4
   CELL_WIDTH: 0.4
   REWARD_RATE: 5

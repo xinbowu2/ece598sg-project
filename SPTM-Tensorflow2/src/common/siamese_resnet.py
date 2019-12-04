@@ -34,11 +34,10 @@ class SiameseResnet(tf.keras.Model):
 		self.fc5 = tf.keras.layers.Dense(units=num_classes, activation=tf.keras.activations.softmax, kernel_initializer='he_normal')
 
 	def call(self, inputs, training=None, mask=None):
-		pdb.set_trace()
 		first_branch = self.res(inputs[:,:,:,:3]) #embedding for first observation
 		second_branch = self.res(inputs[:,:,:,3:]) #embedding for second observation
 
-		raw_result = np.concatenate([first_branch, second_branch], axis=1)
+		raw_result = tf.concat([first_branch, second_branch], axis=1)
 
 		x = self.bn(raw_result)
 		x = tf.nn.relu(x)
@@ -60,5 +59,4 @@ class SiameseResnet(tf.keras.Model):
 		x = tf.nn.relu(x)
 
 		x = self.fc5(x)        
-
 		return x

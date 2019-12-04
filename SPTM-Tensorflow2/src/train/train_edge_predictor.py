@@ -25,7 +25,6 @@ def data_generator():
 		y_result = []
 		for episode in range(EDGE_EPISODES):
 			current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
-			pdb.set_trace()	
 
 			x = []
 			for _ in range(MAX_CONTINUOUS_PLAY):
@@ -77,7 +76,6 @@ def data_generator():
 				future_x = x[second]
 				current_x = x[first]
 				current_y = y
-				pdb.set_trace()
 				x_result.append(np.concatenate((current_x, future_x), axis=2))
 				y_result.append(current_y)
 		number_of_batches = int(len(x_result) / BATCH_SIZE)

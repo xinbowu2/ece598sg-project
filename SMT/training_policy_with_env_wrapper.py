@@ -40,7 +40,7 @@ if __name__ == '__main__':
 	horizon = configuration.TASK.HORIZON
 	batch_size = configuration.TRAIN.BATCH_SIZE
 	num_iterations = configuration.TRAIN.NUM_ITERATIONS
-	step =  num_iterations//100
+	#step =  num_iterations//100
 
 	train_scene_list = os.listdir('./data/datasets/pointnav/gibson/v1/train/content/')
 	episodes_per_train_scene = configuration.TRAIN.EPISODES_PER_SCENE
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 	habitat_config.freeze()
 
 	environment = HabitatWrapper(configuration, habitat_config)
-	environment.reset()
+	#environment.reset()
 	if configuration.TRAIN.OPTIMIZER == 'adam':
 		optimizer = Adam(learning_rate=configuration.TRAIN.LR)
 	else:
@@ -87,16 +87,19 @@ if __name__ == '__main__':
 			agent.environment.get_env().reconfigure(habitat_config)
 		 	#agent.reset() # ??
 
-			num_episodes = len(agent.environment.get_env().episodes)
-			sampled_episodes = random.sample(range(0, num_episodes), episodes_per_train_scene)
-			
-			for e in sampled_episodes:
-				agent.reset(e)
+			#num_episodes = len(agent.environment.get_env().episodes)
+			#sampled_episodes = random.sample(range(0, num_episodes), episodes_per_train_scene)
+			agent.environment.get_env().episodes = random.shuffle(agent.environment.get_env().episodes)
+
+			for e in range(episodes_per_train_scene):
+				agent.reset()
 				if n < random_episodes_threshold:
 					training = False
 				else:
+					print('finish filling up replay buffer and start training')
 					training = True
 				if n%align_model_threshold == 1 and training:
+					print('align the models')
 					agent.align_target_model()
 				for timestep in range(horizon):
 					action = agent.sample_action()
