@@ -7,6 +7,7 @@ print("IMPORTS COMPLETE")
 def data_generator():
   config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
   config.defrost()
+  config.DATASET.SPLIT = 'train_mini'
   config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
   config.freeze()
   # print(config)
@@ -81,7 +82,7 @@ if __name__ == '__main__':
   #model = ACTION_NETWORK(((1 + ACTION_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), ACTION_CLASSES)
   model = ResNet18(3)
   model.build((16, 480, 640, 9))
-  model.load_weights("../experiments/experiment1/models/model.000200.h5")
+  #model.load_weights("../experiments/experiment1/models/model.000200.h5")
   adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
   model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
   callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
