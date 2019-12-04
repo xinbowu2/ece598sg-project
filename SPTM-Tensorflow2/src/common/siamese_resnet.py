@@ -1,6 +1,7 @@
 import tensorflow as tf
 from common.resnet18 import ResNet18
 import numpy as np
+import pdb
 
 NUM_EMBEDDING = 512 #256 #512 #1024 #256 #1024 #256
 TOP_HIDDEN = 4 #1 #4
@@ -33,6 +34,7 @@ class SiameseResnet(tf.keras.Model):
 		self.fc5 = tf.keras.layers.Dense(units=num_classes, activation=tf.keras.activations.softmax, kernel_initializer='he_normal')
 
 	def call(self, inputs, training=None, mask=None):
+		pdb.set_trace()
 		first_branch = self.res(inputs[:,:,:,:3])
 		second_branch = self.res(inputs[:,:,:,3:])
 
