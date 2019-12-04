@@ -32,20 +32,22 @@ class RL_Agent(tf.keras.Model):
 		# Initialize discount and exploration rate
 		self.gamma = gamma
 
-		self.current_observation = None
+		self.current_image = None
 		#self.policy_network.compile(loss='mse', optimizer=self.optimizer)
 
-	def update_scene_memory(self, image):
+	def update_scene_memory(self, image, timestep=None):
 		obs = {}
 		obs['image'] = image
-		self.scene_memory(obs, training_embedding=self.training_embedding)
+		self.scene_memory(obs, training_embedding=self.training_embedding, timestep=timestep)
 
 	#resets the environment and sets current_episode number to r
 	def reset(self, episode_idx):
 		self.scene_memory.reset()
 		self.environment.get_env()._current_episode = self.environment.get_env().episodes[episode_idx]
-		self.current_observation = self.environment.reset()['rgb']/255.0
-		self.update_scene_memory(self.current_observation) 
+
+		self.current_image = self.environment.reset()['rgb']/255.0
+		self.update_scene_memory(self.current_image, timestep=0) 
+
 		self.action_list = []
 		self.reward_list = []
 
@@ -57,13 +59,12 @@ class RL_Agent(tf.keras.Model):
 		else:
 			return random.randint(0, self.action_size-2)
 
-
 	#returns the observation after taking the action
-	def step(self, action, batch_size=64, training=False):
+	def step(self, action, timestep=None, batch_size=64, training=False):
 		#current_x = self.environment.step(action)['rgb']/255.0
 		self.environment.set_action(action)
-		new_observation = self.environment.advance_action()
-		self.update_scene_memory(new_observation)
+		new_image = self.environment.advance_action()
+		self.update_scene_memory(new_image)
 		
 		reward = self.environment.get_reward()
 		self.action_list.append(action)
@@ -72,23 +73,23 @@ class RL_Agent(tf.keras.Model):
 			if self.training_embedding:
 				self.update_model_embedding(batch_size) #train the embeddings from replay buffer 				
 			else:
-				self.update_model(len(self.scene_memory.memory)-2, batch_size) # discard the last observation? 
+				self.update_model(len(self.scene_memory.memory)-2, batch_size) # discard the last image? 
 
 		if self.training_embedding:
-			self.store_observation(observation, action, reward, next_observation, self.environment.episode_over)		
+			self.store_image(image, action, reward, next_image, self.environment.episode_over)		
 
-		if self.environment.episode_over:
+		if self.environment.is_terminated():
 			if not self.training_embedding:
 				self.store_episode(tf.stack(self.scene_memory.memory, axis=1), self.action_list, self.reward_list)
 
 			self.action_list = []
 			self.reward_list = []
 
-		self.current_observation = new_observation
+		self.current_image = new_image
 		return reward 
 
-	def store_observation(self, observation, action, reward, next_observation, done):
-		self.experience_replay.append((observation, action, reward, next_observation, done))
+	def store_image(self, image, action, reward, next_image, done):
+		self.experience_replay.append((image, action, reward, next_image, done))
 
 	#stores a episode in the replay-buffer
 	def store_episode(self, memory, action_list, reward_list):
@@ -153,7 +154,6 @@ class RL_Agent(tf.keras.Model):
 			#action_batch should be of size batch_size*1
 			action_batch = tf.convert_to_tensor([x[1] for x in batch_sample])[:, time_step]
 			reward_batch = tf.convert_to_tensor([x[2] for x in batch_sample])[:, time_step]
-good that
 			q_vals = self.policy_network(state_batch, memory_batch)[:,0,:]
 			target = copy.deepcopy(q_vals)
 
