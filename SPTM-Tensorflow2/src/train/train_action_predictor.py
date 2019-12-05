@@ -75,7 +75,7 @@ def data_generator():
 
 if __name__ == '__main__':
   print("HELLOOOO")
-  logs_path, current_model_path = setup_training_paths(EXPERIMENT_OUTPUT_FOLDER)
+  logs_path, current_model_path = setup_training_paths("../experiments/action/default_experiment")
   print(logs_path, current_model_path)
 
   #model = ACTION_NETWORK(((1 + ACTION_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), ACTION_CLASSES)

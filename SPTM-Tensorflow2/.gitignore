@@ -27,7 +27,7 @@ build/*
 !build/*.sh
 !build/*.py
 experiments/*
+!*._out
 !experiments/download_models.sh
-._*
 !conda_env.txt
 
