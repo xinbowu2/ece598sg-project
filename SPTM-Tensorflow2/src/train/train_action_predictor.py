@@ -68,8 +68,7 @@ def data_generator():
         yield_count += 1 
         print(np.array(x_result).shape)
         yield (np.array(x_result),
-               tf.keras.utils.to_categorical(np.array(y_result),
-                                          num_classes=ACTION_CLASSES))
+               np.array(y_result))
         x_result = []
         y_result = []
   env.close()
@@ -84,7 +83,7 @@ if __name__ == '__main__':
   #model.build((16, 256, 256, 9))
   #model.load_weights("../experiments/experiment1/models/model.000200.h5")
   adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-  model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+  model.compile(loss='sparse_categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
   callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
                     tf.keras.callbacks.ModelCheckpoint(current_model_path,
                                                     period=MODEL_CHECKPOINT_PERIOD)]

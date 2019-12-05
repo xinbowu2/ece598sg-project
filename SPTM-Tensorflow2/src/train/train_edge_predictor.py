@@ -83,15 +83,14 @@ def data_generator():
 			from_index = batch_index * BATCH_SIZE
 			to_index = (batch_index + 1) * BATCH_SIZE
 			x_out = np.array(x_result[from_index:to_index])
-			yield (x_out, tf.keras.utils.to_categorical(np.array(y_result[from_index:to_index]),
-									num_classes=EDGE_CLASSES))
+			yield (x_out, np.array(y_result[from_index:to_index]))
 
 if __name__ == '__main__':
 	logs_path, current_model_path = setup_training_paths('../experiments/edge/default_experiment')
 	model = SiameseResnet(EDGE_CLASSES)
 	#model = EDGE_NETWORK(((1 + EDGE_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), EDGE_CLASSES)
 	adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-	model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+	model.compile(loss='sparse_categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
 	callbacks_list = [tf.keras.callbacks.TensorBoard(log_dir=logs_path, write_graph=False),
 										tf.keras.callbacks.ModelCheckpoint(current_model_path,
 										period=MODEL_CHECKPOINT_PERIOD)]
