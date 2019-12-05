@@ -49,7 +49,7 @@ class RL_Agent(tf.keras.Model):
 		#self.environment.get_env()._current_episode = self.environment.get_env().episodes[episode_idx]
 
 		self.curr_observations = self.environment.reset()
-		self.update_scene_memory(self.curr_observations, timestep=0) 
+		self.update_scene_memory(self.curr_observations, timestep=[0.0]) 
 
 		self.action_list = []
 		self.reward_list = []
@@ -64,10 +64,11 @@ class RL_Agent(tf.keras.Model):
 
 	#returns the observation after taking the action
 	def step(self, action, timestep, batch_size, training=False, evaluating=False):
+		timestep = float(timestep)
 		#current_x = self.environment.step(action)['rgb']/255.0
 		self.environment.set_action(action)
 		new_observations = self.environment.advance_action()
-		self.update_scene_memory(new_observations, timestep=timestep+1)
+		self.update_scene_memory(new_observations, timestep=[timestep+1.0])
 		
 		reward = self.environment.get_reward()
 		if not evaluating:
@@ -80,7 +81,7 @@ class RL_Agent(tf.keras.Model):
 					self.update_model(len(self.scene_memory.memory)-2, batch_size) # discard the last image? 
 
 			if self.training_embedding:
-				self.store_observations(timestep, self.current_observations, action, reward, new_observations, self.environment.is_terminated())		
+				self.store_observations(timestep, self.curr_observations, action, reward, new_observations, self.environment.is_terminated())		
 
 			if self.environment.is_terminated():
 				if not self.training_embedding:
@@ -107,8 +108,13 @@ class RL_Agent(tf.keras.Model):
 		with tf.GradientTape() as tape:
 			batch_sample = random.sample(self.experience_replay, batch_size) #list of tuples - each tuple has (obs, action, reward, next_obs, done)
 			timestep = tf.stack([x[0] for x in batch_sample])
-			observations = tf.stack([x[1] for x in batch_sample])
-			next_observations = tf.stack([x[4] for x in batch_sample])
+			#print('___________________________________________________', timestep)
+			observations, next_observations = {}, {}
+			for modality in self.scene_memory.modalities:
+				observations[modality] = tf.stack([x[1][modality] for x in batch_sample], axis=0)
+				next_observations[modality] = tf.stack([x[4][modality] for x in batch_sample], axis=0)
+			#observations = tf.stack([x[1] for x in batch_sample])
+			#next_observations = tf.stack([x[4] for x in batch_sample])
 
 
 			embeddings = self.scene_memory.forward_pass(observations, timestep)
@@ -116,7 +122,7 @@ class RL_Agent(tf.keras.Model):
 
 			action_batch = tf.stack([x[2] for x in batch_sample])
 			reward_batch = tf.stack([x[3] for x in batch_sample])
-			done = tf.stack([x[5] for x in batch_sample])
+			done = tf.dtypes.cast(tf.stack([x[5] for x in batch_sample]), tf.float32)
 
 			#only consider current embedding in the memory
 			q_vals = self.policy_network(embeddings, embeddings)[:,0,:]
@@ -131,14 +137,15 @@ class RL_Agent(tf.keras.Model):
 			loss = self.loss_function(target, q_vals)
 			#tape.watch(state_batch)
 		trainable_variables = self.policy_network.trainable_variables
-		trainable_variables.append(self.scene_memory.trainable_variables) 
+		trainable_variables.extend(self.scene_memory.trainable_variables) 
 
 		# freeze embedding networks when training the policy network
 		gradients = tape.gradient(loss, trainable_variables)
+		#pdb.set_trace()
 		self.optimizer.apply_gradients(zip(gradients, trainable_variables))
 
 		#pdb.set_trace()
-		print(tf.reduce_sum(loss))
+		#print(tf.reduce_sum(loss))
 
 	def update_model(self, time_step, batch_size):
 		with tf.GradientTape() as tape:
@@ -181,7 +188,8 @@ class RL_Agent(tf.keras.Model):
 		trainable_variables = self.policy_network.trainable_variables
 		# freeze embedding networks when training the policy network
 		gradients = tape.gradient(loss, trainable_variables)
+		#pdb.set_trace()
 		self.optimizer.apply_gradients(zip(gradients, trainable_variables))
 
 		#pdb.set_trace()
-		print(tf.reduce_sum(loss))
+		#print(tf.reduce_sum(loss))
