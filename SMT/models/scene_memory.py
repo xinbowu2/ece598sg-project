@@ -1,9 +1,10 @@
 import tensorflow as tf
 from models.resnet18 import ModifiedResNet18
 import pdb
+import copy
 
 class SceneMemory(tf.keras.Model):
-	def __init__(self, modalities=['rgb', 'prev_action'], modality_dim={'image':64, 'prev_action':64}, downsampling_size=(64,64), 
+	def __init__(self, modalities=['rgb', 'prev_action'], modality_dim={'rgb':64, 'prev_action':64}, downsampling_size=(64,64), 
 	  reduce_factor=4, observation_dim=128):
 		super(SceneMemory, self).__init__()
 		self.downsampling_size = downsampling_size
@@ -15,14 +16,14 @@ class SceneMemory(tf.keras.Model):
 		self.memory = []
 		self.obs_embedding = None
 
-		if 'image' in modalities:
-			self.embedding_nets['image'] = ModifiedResNet18(modality_dim['image'], reduce_factor)
+		if 'rgb' in modalities:
+			self.embedding_nets['rgb'] = ModifiedResNet18(modality_dim['rgb'], reduce_factor)
 
 		if 'pose' in modalities:
-			self.embeddings_nets['pose'] = tf.keras.layers.Dense(modality_dim['pose'])
+			self.embedding_nets['pose'] = tf.keras.layers.Dense(modality_dim['pose'])
 
 		if 'prev_action' in modalities:
-			self.embeddings_nets['prev_action'] = tf.keras.layers.Dense(modality_dim['prev_action'])
+			self.embedding_nets['prev_action'] = tf.keras.layers.Dense(modality_dim['prev_action'])
 
 
 		self.fc = tf.keras.layers.Dense(observation_dim)
@@ -34,15 +35,17 @@ class SceneMemory(tf.keras.Model):
 
 	#returns the embedding
 	def forward_pass(self, observations, timestep, training=False):
+		observations = copy.deepcopy(observations) 
 		for modality in self.modalities:
-			if len(observations[modality].shape) == 3:
-				observations[modality] = tf.expand_dims(observations[modality], 0)
+			#if len(observations[modality].shape) == 3:
+			observations[modality] = tf.expand_dims(observations[modality], 0)
 
 		observations['rgb'] = tf.image.resize(observations['rgb'],
 		size=self.downsampling_size)
 		
 		observations['rgb'] = tf.transpose(observations['rgb'], perm=[0, 3, 1, 2])
-		
+		#if 'prev_action' in self.modalities:
+			#observations['prev_action'] = tf.convert_to_tensor(observations['prev_action'], dtype=tf.float32)		
 		curr_embedding = self._embed(observations, timestep, training)
 		
 		return curr_embedding
@@ -54,6 +57,7 @@ class SceneMemory(tf.keras.Model):
 
 	def _update(self, observations, timestep, training_embedding=False):
 		#observations['image'] should be a 4D tensor (batch, height, width, channels)
+		
 		#input will be (height, width, channels)
 		curr_embedding = self.forward_pass(observations, timestep, training=training_embedding)
 
@@ -66,13 +70,15 @@ class SceneMemory(tf.keras.Model):
 
 
 	def _embed(self, observations, timestep, training=False):
-		temporal_embeddings = [tf.reshape(tf.math.exp(tf.constant(-float(timestep))),[1,1])]
+		temporal_embedding = tf.reshape(tf.math.exp(tf.constant(-float(timestep))),[1,1])
 		embeddings = []
 		for modality in self.modalities:
 			if modality == 'rgb':
 				embeddings.append(self.embedding_nets[modality](observations[modality], training))
 			else:
-				embeddings.append(self.embedding_nets[modality](observations[modality])
-)
-		concat_embedding = tf.concat([embeddings, temporal_embeddings], axis=2)
-		return self.fc(concat_embedding)
+				concat_embedding = tf.concat([observations[modality], temporal_embedding], axis=1)
+				embeddings.append(self.embedding_nets[modality](concat_embedding))
+				
+
+
+		return self.fc(tf.concat(embeddings, axis=1))

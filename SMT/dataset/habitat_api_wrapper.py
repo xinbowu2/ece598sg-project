@@ -25,11 +25,12 @@ class HabitatWrapper:
 
     
   def process_observation(self, observations):
-    observations['rgb'] = observations['rgb']/255.0
-    observations['prev_action'] = [0.0, 0.0, 0.0]
+    observations_dict = {}
+    observations_dict['rgb'] = observations['rgb']/255.0
+    observations_dict['prev_action'] = np.array( [0.0, 0.0, 0.0], dtype=np.float32)
     if self.prev_action:
-      observations['prev_action'][self.prev_action] += 1.0
-    return observations
+      observations_dict['prev_action'][self.prev_action] += 1.0
+    return observations_dict
 
   def reset(self):
     self.observations = self.process_observation(self.env.reset())
@@ -86,7 +87,7 @@ class HabitatWrapper:
     #print(self.cell_width, ' ', self.cell_height)
     # no reward if the agent does not enter a new unvisited cell
     if curr_cell_pos == [self.last_cell_x, self.last_cell_y] or curr_cell_pos in self.visited_cells:
-      return 0
+      return 0.0
 
     # update new cell information
     self.visited_cells.append(curr_cell_pos)

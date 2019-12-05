@@ -41,7 +41,7 @@ class RL_Agent(tf.keras.Model):
 		#self.policy_network.compile(loss='mse', optimizer=self.optimizer)
 
 	def update_scene_memory(self, observations, timestep):
-		self.scene_memory(observations, training_embedding=self.training_embedding, timestep=timestep)
+		self.scene_memory(observations, timestep=timestep, training_embedding=self.training_embedding)
 
 	#resets the environment and sets current_episode number to r
 	def reset(self):
@@ -56,14 +56,14 @@ class RL_Agent(tf.keras.Model):
 
 	#choose which action to take using epsilon-greedy policy
 	def sample_action(self, evaluating=False):
-		if validating or np.random.rand() > self.epsilon: 
+		if evaluating or np.random.rand() > self.epsilon: 
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
 			return tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
 		else:
 			return random.randint(0, self.action_size-1) #?? why -2 here
 
 	#returns the observation after taking the action
-	def step(self, action, timestep, batch_size=64, training=False, evaluating=False):
+	def step(self, action, timestep, batch_size, training=False, evaluating=False):
 		#current_x = self.environment.step(action)['rgb']/255.0
 		self.environment.set_action(action)
 		new_observations = self.environment.advance_action()
@@ -97,12 +97,13 @@ class RL_Agent(tf.keras.Model):
 
 	#stores a episode in the replay-buffer
 	def store_episode(self, memory, action_list, reward_list):
+		print('storing episode')
 		self.experience_replay.append((memory, action_list, reward_list))
 
 	def align_target_model(self):
 		self.target_policy_network.set_weights(self.policy_network.get_weights())
 	
-	def update_model_embedding(self, batch_size=64):
+	def update_model_embedding(self, batch_size):
 		with tf.GradientTape() as tape:
 			batch_sample = random.sample(self.experience_replay, batch_size) #list of tuples - each tuple has (obs, action, reward, next_obs, done)
 			timestep = tf.stack([x[0] for x in batch_sample])
@@ -124,7 +125,7 @@ class RL_Agent(tf.keras.Model):
 			indices = tf.stack([tf.range(batch_size), action_batch], axis=1)
 			t = self.target_policy_network(next_embeddings, next_embeddings)[:,0,:] #? what is shape of t? batch_size*actions
 			updates = reward_batch + self.gamma*tf.math.multiply(tf.math.reduce_max(t, axis=1), (1-done))
-		
+					
 			target = tf.tensor_scatter_nd_update(target, indices, updates)
 		
 			loss = self.loss_function(target, q_vals)
@@ -139,13 +140,15 @@ class RL_Agent(tf.keras.Model):
 		#pdb.set_trace()
 		print(tf.reduce_sum(loss))
 
-	def update_model(self, time_step, batch_size=64):
+	def update_model(self, time_step, batch_size):
 		with tf.GradientTape() as tape:
+			print(batch_size)
+			print(len(self.experience_replay))
 			batch_sample = random.sample(self.experience_replay, batch_size) 
 			minibatch = tf.concat([x[0] for x in batch_sample], axis=0) #batch of memory for full episode
 
 			#size of minibatch should be (batch_size, Horizon, 128)
-			horizon = minibatch.shape[1]-1 #time goes from 0 to horizon-1
+			horizon = minibatch.shape[1]  #time goes from 0 to horizon-1
 		
 			memory_batch = minibatch[:,0:time_step+1,:] #hold out memory from 0 to time_step both included
 
@@ -166,7 +169,9 @@ class RL_Agent(tf.keras.Model):
 			if time_step == horizon-2:
 				updates = reward_batch
 			else:
+				print('current timstep: ', time_step)
 				t = self.target_policy_network(next_state_batch, next_memory_batch)[:,0,:] #? what is shape of t? batch_size*actions
+				#print(reward_batch)
 				updates = reward_batch + self.gamma*tf.math.reduce_max(t, axis=1)
 		
 			target = tf.tensor_scatter_nd_update(target, indices, updates)
