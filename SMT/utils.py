@@ -60,12 +60,11 @@ def validate(training_iterations, logger, configs, habitat_configs, agent):
 		#print("EPISODE ", e)
 		episode_reward = 0
 
-		agent.reset(e) #reset the environment, sets the episode-index to e
+		agent.reset() #reset the environment, sets the episode-index to e
 
-
-		for timestep in range(horizon):
-			action = agent.sample_action(validating=True)
-			episode_reward += agent.step(action, training=False)    
+		for timestep in range(horizon-1):
+			action = agent.sample_action(evaluating=True)
+			episode_reward += agent.step(action, timestep=timestep, training=False, evaluating=True)    
 
 		sum_reward += episode_reward 
 		
@@ -73,5 +72,5 @@ def validate(training_iterations, logger, configs, habitat_configs, agent):
 			bar.update(e//step + 1)
 
 	bar.finish()
-
+    
 	logger.info('Validation reward for %i training iterations: %f' % (training_iterations, sum_reward/num_episodes))

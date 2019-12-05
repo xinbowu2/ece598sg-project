@@ -55,7 +55,7 @@ class RL_Agent(tf.keras.Model):
 		self.reward_list = []
 
 	#choose which action to take using epsilon-greedy policy
-	def sample_action(self, validating=False):
+	def sample_action(self, evaluating=False):
 		if validating or np.random.rand() > self.epsilon: 
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
 			return tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
@@ -63,30 +63,31 @@ class RL_Agent(tf.keras.Model):
 			return random.randint(0, self.action_size-1) #?? why -2 here
 
 	#returns the observation after taking the action
-	def step(self, action, timestep, batch_size=64, training=False):
+	def step(self, action, timestep, batch_size=64, training=False, evaluating=False):
 		#current_x = self.environment.step(action)['rgb']/255.0
 		self.environment.set_action(action)
 		new_observations = self.environment.advance_action()
 		self.update_scene_memory(new_observations, timestep=timestep+1)
 		
 		reward = self.environment.get_reward()
-		self.action_list.append(action)
-		self.reward_list.append(reward)
-		if training:
+		if not evaluating:
+			self.action_list.append(action)
+			self.reward_list.append(reward)
+			if training:
+				if self.training_embedding:
+					self.update_model_embedding(batch_size) #train the embeddings from replay buffer 				
+				else:
+					self.update_model(len(self.scene_memory.memory)-2, batch_size) # discard the last image? 
+
 			if self.training_embedding:
-				self.update_model_embedding(batch_size) #train the embeddings from replay buffer 				
-			else:
-				self.update_model(len(self.scene_memory.memory)-2, batch_size) # discard the last image? 
+				self.store_observations(timestep, self.current_observations, action, reward, new_observations, self.environment.is_terminated())		
 
-		if self.training_embedding:
-			self.store_observations(timestep, self.current_observations, action, reward, new_observations, self.environment.is_terminated())		
+			if self.environment.is_terminated():
+				if not self.training_embedding:
+					self.store_episode(tf.stack(self.scene_memory.memory, axis=1), self.action_list, self.reward_list)
 
-		if self.environment.is_terminated():
-			if not self.training_embedding:
-				self.store_episode(tf.stack(self.scene_memory.memory, axis=1), self.action_list, self.reward_list)
-
-			self.action_list = []
-			self.reward_list = []
+				self.action_list = []
+				self.reward_list = []
 
 		self.current_observations = new_observations
 		return reward 
