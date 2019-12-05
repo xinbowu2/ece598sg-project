@@ -11,12 +11,13 @@ import pdb
 
 class RL_Agent(tf.keras.Model):
 
-	def __init__(self, environment, optimizer, loss_function, training_embedding=False, epsilon=0.1 ,gamma=0.95, num_actions=4, d_model=128):
+	def __init__(self, environment, optimizer, loss_function, batch_size, training_embedding=False, epsilon=0.1 ,gamma=0.95, num_actions=4, d_model=128):
 		super(RL_Agent, self).__init__()
 		
 		self.action_size = num_actions
 		self.epsilon = epsilon #epsilon-greedy
 			
+		self.batch_size = batch_size
 		self.training_embedding = training_embedding
 
 		self.scene_memory = SceneMemory()
@@ -26,7 +27,11 @@ class RL_Agent(tf.keras.Model):
 		self.optimizer = optimizer
 		self.loss_function = loss_function
 
-		self.experience_replay = collections.deque(maxlen=2000)
+		if training_embedding:
+			self.experience_replay = collections.deque(maxlen=2000*batch_size)
+		else:
+			self.experience_replay = collections.deque(maxlen=2000)
+
 		self.action_list = []
 		self.reward_list = []
 		# Initialize discount and exploration rate
@@ -55,14 +60,14 @@ class RL_Agent(tf.keras.Model):
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
 			return tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
 		else:
-			return random.randint(0, self.action_size-2)
+			return random.randint(0, self.action_size-1) #?? why -2 here
 
 	#returns the observation after taking the action
 	def step(self, action, timestep, batch_size=64, training=False):
 		#current_x = self.environment.step(action)['rgb']/255.0
 		self.environment.set_action(action)
 		new_observations = self.environment.advance_action()
-		self.update_scene_memory(new_observations, timestep=timestep)
+		self.update_scene_memory(new_observations, timestep=timestep+1)
 		
 		reward = self.environment.get_reward()
 		self.action_list.append(action)
@@ -144,7 +149,7 @@ class RL_Agent(tf.keras.Model):
 			memory_batch = minibatch[:,0:time_step+1,:] #hold out memory from 0 to time_step both included
 
 			state_batch = minibatch[:,time_step,:]
-			if time_step < horizon-1:
+			if time_step < horizon-2:
 				next_state_batch = minibatch[:,time_step+1,:]
 
 				next_memory_batch = minibatch[:, 0:time_step+2, :]
@@ -157,7 +162,7 @@ class RL_Agent(tf.keras.Model):
 
 
 			indices = tf.stack([tf.range(batch_size), action_batch], axis=1)
-			if time_step == horizon-1:
+			if time_step == horizon-2:
 				updates = reward_batch
 			else:
 				t = self.target_policy_network(next_state_batch, next_memory_batch)[:,0,:] #? what is shape of t? batch_size*actions
