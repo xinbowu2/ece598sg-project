@@ -9,7 +9,7 @@ def data_generator():
   config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
   config.defrost()
   config.DATASET.SPLIT = 'train_mini'
-  config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*5
+  config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*10
   config.freeze()
   # print(config)
   env = habitat.Env(config=config)
@@ -24,11 +24,9 @@ def data_generator():
   current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
   # print(config)
   yield_count = 0
-  save_image(current_x, yield_count)
   while True:
     if yield_count >= ACTION_MAX_YIELD_COUNT_BEFORE_RESTART:
       current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
-      save_image(current_x, yield_count)
       yield_count = 0
     x = []
     y = []
@@ -44,7 +42,6 @@ def data_generator():
         
       if env.episode_over:
         current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
-        save_image(current_x, yield_count)
         break
 
     first_second_pairs = []
