@@ -2,13 +2,14 @@ from train.train_setup import *
 import pdb
 import habitat
 import random
+import matplotlib.pyplot as plt
 print("IMPORTS COMPLETE")
 
 def data_generator():
   config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
   config.defrost()
   config.DATASET.SPLIT = 'train_mini'
-  config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*64
+  config.ENVIRONMENT.MAX_EPISODE_STEPS = MAX_CONTINUOUS_PLAY*5
   config.freeze()
   # print(config)
   env = habitat.Env(config=config)
@@ -23,9 +24,11 @@ def data_generator():
   current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
   # print(config)
   yield_count = 0
+  save_image(current_x, yield_count)
   while True:
     if yield_count >= ACTION_MAX_YIELD_COUNT_BEFORE_RESTART:
       current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
+      save_image(current_x, yield_count)
       yield_count = 0
     x = []
     y = []
@@ -41,6 +44,7 @@ def data_generator():
         
       if env.episode_over:
         current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
+        save_image(current_x, yield_count)
         break
 
     first_second_pairs = []
@@ -72,6 +76,12 @@ def data_generator():
         x_result = []
         y_result = []
   env.close()
+
+def save_image(image, yield_count):
+  fig = plt.figure(figsize=(75,75))
+  sub = fig.add_subplot(1, 1, 1)
+  sub.imshow(image, interpolation='nearest')
+  fig.savefig('starting_images%d_%d.png'%(random.randint(0,1000),yield_count))
 
 if __name__ == '__main__':
   print("HELLOOOO")
