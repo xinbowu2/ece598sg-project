@@ -97,7 +97,7 @@ class RL_Agent(tf.keras.Model):
 
 	#stores a episode in the replay-buffer
 	def store_episode(self, memory, action_list, reward_list):
-		print('storing episode')
+		#print('storing episode')
 		self.experience_replay.append((memory, action_list, reward_list))
 
 	def align_target_model(self):
@@ -142,8 +142,8 @@ class RL_Agent(tf.keras.Model):
 
 	def update_model(self, time_step, batch_size):
 		with tf.GradientTape() as tape:
-			print(batch_size)
-			print(len(self.experience_replay))
+			#print(batch_size)
+			#print(len(self.experience_replay))
 			batch_sample = random.sample(self.experience_replay, batch_size) 
 			minibatch = tf.concat([x[0] for x in batch_sample], axis=0) #batch of memory for full episode
 
@@ -169,7 +169,7 @@ class RL_Agent(tf.keras.Model):
 			if time_step == horizon-2:
 				updates = reward_batch
 			else:
-				print('current timstep: ', time_step)
+				#print('current timstep: ', time_step)
 				t = self.target_policy_network(next_state_batch, next_memory_batch)[:,0,:] #? what is shape of t? batch_size*actions
 				#print(reward_batch)
 				updates = reward_batch + self.gamma*tf.math.reduce_max(t, axis=1)
