@@ -39,11 +39,12 @@ def create_logger(cfg, cfg_name, phase='train'):
 
     return logger, str(final_output_dir), str(tensorboard_log_dir)
 
-def validate(training_iterations, logger, configs, habitat_configs, agent):
-	horizon = configuration.TASK.HARIZON
-
+def validate(training_iterations, logger, configs, habitat_config, agent):
+	batch_size = configs.TRAIN.BATCH_SIZE
+	horizon = configs.TASK.HORIZON
+	num_episodes = len(agent.environment.get_env().episodes)
+	num_episodes = 100
 	sum_reward = 0
-	num_episodes = len(eval_nvironment.env.episodes)
 	step = num_episodes//100
 
 	bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
@@ -52,20 +53,18 @@ def validate(training_iterations, logger, configs, habitat_configs, agent):
 	habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/val_mini/val_mini.json.gz'
 	habitat_config.freeze()
 	agent.environment.get_env().reconfigure(habitat_config)
-
-	num_episodes = len(agent.environment.get_env().episodes)
-
+	
+	print(num_episodes)
 	for e in range(0, num_episodes):
 		# Reset the enviroment
 		#print("EPISODE ", e)
 		episode_reward = 0
 
-		agent.reset(e) #reset the environment, sets the episode-index to e
+		agent.reset() #reset the environment, sets the episode-index to e
 
-
-		for timestep in range(horizon):
-			action = agent.sample_action(validating=True)
-			episode_reward += agent.step(action, training=False)    
+		for timestep in range(horizon-1):
+			action = agent.sample_action(evaluating=True)
+			episode_reward += agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)    
 
 		sum_reward += episode_reward 
 		
@@ -73,5 +72,5 @@ def validate(training_iterations, logger, configs, habitat_configs, agent):
 			bar.update(e//step + 1)
 
 	bar.finish()
-
+    
 	logger.info('Validation reward for %i training iterations: %f' % (training_iterations, sum_reward/num_episodes))

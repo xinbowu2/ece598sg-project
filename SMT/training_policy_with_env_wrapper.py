@@ -54,11 +54,11 @@ if __name__ == '__main__':
 	habitat_config.DATASET.SCENES_DIR = '/data/scene_datasets/gibson'
 	habitat_config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
 	habitat_config.SIMULATOR.TURN_ANGLE = 45
-	habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon
+	habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon-1
 	habitat_config.freeze()
 
 	environment = HabitatWrapper(configuration, habitat_config)
-	#environment.reset()
+	environment.reset()
 	if configuration.TRAIN.OPTIMIZER == 'adam':
 		optimizer = Adam(learning_rate=configuration.TRAIN.LR)
 	else:
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 	else:
 		raise error('%s is not supported' % configuration.LOSS.TYPE)
 
-	agent  = RL_Agent(environment, optimizer, loss_function, training_embedding=False, num_actions=configuration.TASK.NUM_ACTIONS)
+	agent  = RL_Agent(environment, optimizer, loss_function, batch_size=batch_size, training_embedding=False, num_actions=configuration.TASK.NUM_ACTIONS)
 
 	#num_episodes = len(environment.env.episodes)
 	random_episodes_threshold = configuration.TASK.RANDOM_EPISODES_THRESHOLD
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 		bar = progressbar.ProgressBar(maxval=len(train_scene_list), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 		bar.start()
 		random.shuffle(train_scene_list)
-		for s, scene in enumerate(train_scene_list):
+		for s, scene in enumerate(train_scene_list[0:3]):
 			habitat_config.defrost()
 			habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/train/content/' + scene
 			habitat_config.freeze()
@@ -89,21 +89,22 @@ if __name__ == '__main__':
 
 			#num_episodes = len(agent.environment.get_env().episodes)
 			#sampled_episodes = random.sample(range(0, num_episodes), episodes_per_train_scene)
-			agent.environment.get_env().episodes = random.shuffle(agent.environment.get_env().episodes)
-
+			#agent.environment.get_env().episodes(episodes=random.shuffle(agent.environment.get_env().episodes))
+			print(len(agent.environment.get_env().episodes))
 			for e in range(episodes_per_train_scene):
 				agent.reset()
 				if n < random_episodes_threshold:
 					training = False
 				else:
+					print(n)
 					print('finish filling up replay buffer and start training')
 					training = True
 				if n%align_model_threshold == 1 and training:
 					print('align the models')
 					agent.align_target_model()
-				for timestep in range(horizon):
+				for timestep in range(horizon-1):
 					action = agent.sample_action()
-					agent.step(action, timestep=timestep, training=training)  
+					agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
 				
 				n += 1
 			
@@ -111,7 +112,7 @@ if __name__ == '__main__':
 
 
 		bar.finish()
-		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations))
+		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations-1))
 		validate(i, logger, configuration, habitat_config, agent)
 		
 

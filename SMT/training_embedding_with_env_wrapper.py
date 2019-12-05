@@ -69,7 +69,7 @@ if __name__ == '__main__':
 	else:
 		raise error('%s is not supported' % configuration.LOSS.TYPE)
 
-	agent  = RL_Agent(environment, optimizer, loss_function, training_embedding=True, num_actions=configuration.TASK.NUM_ACTIONS)
+	agent  = RL_Agent(environment, optimizer, loss_function, batch_size=batch_size, training_embedding=True, num_actions=configuration.TASK.NUM_ACTIONS)
 
 	#num_episodes = len(environment.env.episodes)
 	random_episodes_threshold = configuration.TASK.RANDOM_EPISODES_THRESHOLD
@@ -101,9 +101,9 @@ if __name__ == '__main__':
 				if n%align_model_threshold == 1 and training:
 					print('align the models')
 					agent.align_target_model()
-				for timestep in range(horizon):
+				for timestep in range(horizon-1):
 					action = agent.sample_action()
-					agent.step(action, timestep=timestep, training=training)  
+					agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
 				
 				n += 1
 			
