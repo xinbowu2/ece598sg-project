@@ -21,12 +21,12 @@ def data_generator():
       3: 'stop'
   }
 
-  current_x = center_crop_resize(env.reset()['rgb']/255.0, 64)
+  current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
   # print(config)
   yield_count = 0
   while True:
     if yield_count >= ACTION_MAX_YIELD_COUNT_BEFORE_RESTART:
-      current_x = center_crop_resize(env.reset()['rgb']/255.0, 64)
+      current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
       yield_count = 0
     x = []
     y = []
@@ -38,10 +38,10 @@ def data_generator():
       current_y = action_index
       x.append(current_x)
       y.append(current_y)
-      current_x = center_crop_resize(env.step(action_index)['rgb']/255.0, 64)
+      current_x = center_crop_resize(env.step(action_index)['rgb']/255.0, 256)
         
       if env.episode_over:
-        current_x = center_crop_resize(env.reset()['rgb']/255.0, 64)
+        current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
         break
 
     first_second_pairs = []
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
   #model = ACTION_NETWORK(((1 + ACTION_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), ACTION_CLASSES)
   model = ResNet18(3)
-  model.build((32, 64, 64, 9))
+  model.build((32, 256, 256, 9))
   model.load_weights("../experiments/action/experiment1/models/model.000250.h5")
   adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
   model.compile(loss='sparse_categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
