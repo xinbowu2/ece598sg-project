@@ -89,7 +89,7 @@ if __name__ == '__main__':
 	logs_path, current_model_path = setup_training_paths('../experiments/edge/default_experiment')
 	model = SiameseResnet(EDGE_CLASSES)
 	model.build((32, 256, 256, 6))
-  	model.load_weights("../experiments/edge/experiment1/models/model.000250.h5")
+	model.load_weights("../experiments/edge/experiment1/models/model.000250.h5")
 	#model = EDGE_NETWORK(((1 + EDGE_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), EDGE_CLASSES)
 	adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 	model.compile(loss='sparse_categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
