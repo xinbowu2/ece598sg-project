@@ -43,7 +43,7 @@ def validate(training_iterations, logger, configs, habitat_config, agent):
 	batch_size = configs.TRAIN.BATCH_SIZE
 	horizon = configs.TASK.HORIZON
 	num_episodes = len(agent.environment.get_env().episodes)
-	num_episodes = 100
+	num_episodes = 200
 	sum_reward = 0
 	step = num_episodes//100
 
@@ -54,7 +54,7 @@ def validate(training_iterations, logger, configs, habitat_config, agent):
 	habitat_config.freeze()
 	agent.environment.get_env().reconfigure(habitat_config)
 	
-	print(num_episodes)
+	#print(num_episodes)
 	for e in range(0, num_episodes):
 		# Reset the enviroment
 		#print("EPISODE ", e)

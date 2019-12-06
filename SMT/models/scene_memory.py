@@ -37,9 +37,9 @@ class SceneMemory(tf.keras.Model):
 	def forward_pass(self, observations, timestep, training=False):
 		observations = copy.deepcopy(observations) 
 		for modality in self.modalities:
-			#if len(observations[modality].shape) == 3:
-			observations[modality] = tf.expand_dims(observations[modality], 0)
-
+			if len(observations[modality].shape) == 3 or len(observations[modality].shape) == 1:
+				observations[modality] = tf.expand_dims(observations[modality], 0)
+		#print(observations['rgb'].shape)
 		observations['rgb'] = tf.image.resize(observations['rgb'],
 		size=self.downsampling_size)
 		
@@ -70,7 +70,13 @@ class SceneMemory(tf.keras.Model):
 
 
 	def _embed(self, observations, timestep, training=False):
-		temporal_embedding = tf.reshape(tf.math.exp(tf.constant(-float(timestep))),[1,1])
+		#print('______________________', timestep)
+		temporal_embedding = tf.math.exp(tf.convert_to_tensor(timestep,dtype=tf.float32))
+		if temporal_embedding.shape[0] == 1:
+			temporal_embedding = tf.expand_dims(temporal_embedding, 0)
+		else:
+			temporal_embedding = tf.reshape(temporal_embedding, [-1,1])
+		
 		embeddings = []
 		for modality in self.modalities:
 			if modality == 'rgb':

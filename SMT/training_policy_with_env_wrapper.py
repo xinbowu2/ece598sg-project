@@ -74,13 +74,15 @@ if __name__ == '__main__':
 	#num_episodes = len(environment.env.episodes)
 	random_episodes_threshold = configuration.TASK.RANDOM_EPISODES_THRESHOLD
 	align_model_threshold = configuration.TASK.ALIGH_MODEL_THRESHOLD
+	
+	is_here = False
 
 	n = 0
 	for i in range(num_iterations):
 		bar = progressbar.ProgressBar(maxval=len(train_scene_list), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 		bar.start()
 		random.shuffle(train_scene_list)
-		for s, scene in enumerate(train_scene_list[0:3]):
+		for s, scene in enumerate(train_scene_list):
 			habitat_config.defrost()
 			habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/train/content/' + scene
 			habitat_config.freeze()
@@ -90,30 +92,33 @@ if __name__ == '__main__':
 			#num_episodes = len(agent.environment.get_env().episodes)
 			#sampled_episodes = random.sample(range(0, num_episodes), episodes_per_train_scene)
 			#agent.environment.get_env().episodes(episodes=random.shuffle(agent.environment.get_env().episodes))
-			print(len(agent.environment.get_env().episodes))
+			#print(len(agent.environment.get_env().episodes))
 			for e in range(episodes_per_train_scene):
 				agent.reset()
 				if n < random_episodes_threshold:
 					training = False
 				else:
-					print(n)
-					print('finish filling up replay buffer and start training')
+					#print(n)
+					#print('finish filling up replay buffer and start training')
 					training = True
 				if n%align_model_threshold == 1 and training:
-					print('align the models')
+					if not is_here:
+						print('align the models')
+						is_here = True
 					agent.align_target_model()
 				for timestep in range(horizon-1):
 					action = agent.sample_action()
 					agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
-				
+						
 				n += 1
-			
+				if n%2000 == 0:
+					validate(i, logger, configuration, habitat_config, agent)
 			bar.update(s+1)					
 
 
 		bar.finish()
 		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations-1))
-		validate(i, logger, configuration, habitat_config, agent)
+		#validate(i, logger, configuration, habitat_config, agent)
 		
 
 	
