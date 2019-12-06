@@ -47,7 +47,7 @@ def data_generator():
     first_second_pairs = []
     current_first = 0
     while True:
-      distance = random.randint(1, MAX_ACTION_DISTANCE)
+      distance = random.randint(1, 2)
       second = current_first + distance
       if second >= min(len(x), MAX_CONTINUOUS_PLAY):
         break
