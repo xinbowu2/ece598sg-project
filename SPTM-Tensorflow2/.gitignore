@@ -9,6 +9,7 @@
 !*.h
 !*.hpp
 !*.sh
+!*.pbs
 !*.py
 !*.md
 !LICENSE

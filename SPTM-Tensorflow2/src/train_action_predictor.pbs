@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -q eng-instruction
+#PBS -l walltime=12:00:00,nodes=1:ppn=16:V100
+#PBS -N train_action_predictor
+#PBS -e $PBS_JOBID.err
+#PBS -o $PBS_JOBID.out
+#PBS -m bea
+#PBS -M hurwit2@illinois.edu
+. /opt/modules/default/init/bash # NEEDED to add module commands to shell
+
+cd /home/hurwit2/scratch/ece598_proj/aihabitat
+module load singularity
+module load cuda/10.0
+singularity exec --nv -B /usr/local/cuda habitat.simg /bin/bash ./ece598sg-project/SPTM-Tensorflow2/src/train_action_predictor.sh
