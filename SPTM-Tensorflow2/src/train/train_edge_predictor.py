@@ -24,17 +24,17 @@ def data_generator():
 		x_result = []
 		y_result = []
 		for episode in range(EDGE_EPISODES):
-			current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
+			current_x = center_crop_resize(env.reset()['rgb']/255.0, 64)
 
 			x = []
 			for _ in range(MAX_CONTINUOUS_PLAY):
 				action_index = random.randint(0, len(action_mapping)-2)
 				current_y = action_index
 				x.append(current_x)
-				current_x = center_crop_resize(env.step(action_index)['rgb']/255.0, 256)
+				current_x = center_crop_resize(env.step(action_index)['rgb']/255.0, 64)
 					
 				if env.episode_over:
-					current_x = center_crop_resize(env.reset()['rgb']/255.0, 256)
+					current_x = center_crop_resize(env.reset()['rgb']/255.0, 64)
 					break
 			first_second_label = []
 			current_first = 0
@@ -88,7 +88,7 @@ def data_generator():
 if __name__ == '__main__':
 	logs_path, current_model_path = setup_training_paths('../experiments/edge/default_experiment')
 	model = SiameseResnet(EDGE_CLASSES)
-	model.build((32, 256, 256, 6))
+	model.build((32, 64, 64, 6))
 	model.load_weights("../experiments/edge/experiment1/models/model.000250.h5")
 	#model = EDGE_NETWORK(((1 + EDGE_STATE_ENCODING_FRAMES) * NET_CHANNELS, NET_HEIGHT, NET_WIDTH), EDGE_CLASSES)
 	adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
