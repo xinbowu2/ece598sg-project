@@ -1,6 +1,7 @@
 import habitat
+#import error
 import numpy as np 
-
+import tensorflow as tf
 #import config
 
 class HabitatWrapper:
@@ -27,12 +28,18 @@ class HabitatWrapper:
   def process_observation(self, observations):
     observations_dict = {}
     observations_dict['rgb'] = observations['rgb']/255.0
+    observations_dict['rgb'] = tf.image.resize(observations_dict['rgb'],
+                size=(64,64))
+    #print(observations_dict['rgb'].shape)
+    observations_dict['rgb'] = tf.transpose(observations_dict['rgb'], perm=[2,0,1])	
     observations_dict['prev_action'] = np.array( [0.0, 0.0, 0.0], dtype=np.float32)
     if self.prev_action:
       observations_dict['prev_action'][self.prev_action] += 1.0
     return observations_dict
 
   def reset(self):
+    self.current_action = None
+    self.prev_action = None
     self.observations = self.process_observation(self.env.reset())
     
     self.curr_x, _, self.curr_y = self.env.sim.get_agent_state().position
@@ -41,7 +48,7 @@ class HabitatWrapper:
     self.visited_cells = []
     self.visited_cells.append([self.curr_x,self.curr_y])
     self.is_episode_finished = self.env.episode_over
-
+	
     return self.observations
 
   def get_env(self):

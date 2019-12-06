@@ -11,7 +11,7 @@ import pdb
 
 class RL_Agent(tf.keras.Model):
 
-	def __init__(self, environment, optimizer, loss_function, batch_size, training_embedding=False, epsilon=0.1 ,gamma=0.95, num_actions=4, d_model=128):
+	def __init__(self, environment, optimizer, loss_function, batch_size, training_embedding=False, epsilon=0.1 ,gamma=0.95, num_actions=3, d_model=128):
 		super(RL_Agent, self).__init__()
 		
 		self.action_size = num_actions
@@ -19,13 +19,12 @@ class RL_Agent(tf.keras.Model):
 			
 		self.batch_size = batch_size
 		self.training_embedding = training_embedding
-
 		self.scene_memory = SceneMemory()
 		self.policy_network = AttentionPolicyNet(num_actions, d_model)
 		self.target_policy_network = AttentionPolicyNet(num_actions, d_model)
 		self.environment = environment
 		self.optimizer = optimizer
-		self.loss_function = loss_function
+		self.loss = loss_function
 
 		if training_embedding:
 			self.experience_replay = collections.deque(maxlen=2000*batch_size)
@@ -39,6 +38,12 @@ class RL_Agent(tf.keras.Model):
 
 		self.curr_observations = None
 		#self.policy_network.compile(loss='mse', optimizer=self.optimizer)
+	
+	def trace_model(self):
+		observations = self.environment.reset()
+		self.update_scene_memory(observations, timestep=[0.0])
+		q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1))
+		self.reset()
 
 	def update_scene_memory(self, observations, timestep):
 		self.scene_memory(observations, timestep=timestep, training_embedding=self.training_embedding)
@@ -55,11 +60,13 @@ class RL_Agent(tf.keras.Model):
 		self.reward_list = []
 
 	#choose which action to take using epsilon-greedy policy
-	def sample_action(self, evaluating=False):
-		if evaluating or np.random.rand() > self.epsilon: 
+	def sample_action(self, training=False, evaluating=False):
+		if evaluating or (np.random.rand() > self.epsilon and training): 
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
+			#print(q_vals)
 			return tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
 		else:
+			#print('action size: ', self.action_size)
 			return random.randint(0, self.action_size-1) #?? why -2 here
 
 	#returns the observation after taking the action
@@ -82,7 +89,7 @@ class RL_Agent(tf.keras.Model):
 
 			if self.training_embedding:
 				self.store_observations(timestep, self.curr_observations, action, reward, new_observations, self.environment.is_terminated())		
-
+			#print(self.environment.is_terminated())
 			if self.environment.is_terminated():
 				if not self.training_embedding:
 					self.store_episode(tf.stack(self.scene_memory.memory, axis=1), self.action_list, self.reward_list)
@@ -134,7 +141,7 @@ class RL_Agent(tf.keras.Model):
 					
 			target = tf.tensor_scatter_nd_update(target, indices, updates)
 		
-			loss = self.loss_function(target, q_vals)
+			loss = self.loss(target, q_vals)
 			#tape.watch(state_batch)
 		trainable_variables = self.policy_network.trainable_variables
 		trainable_variables.extend(self.scene_memory.trainable_variables) 
@@ -183,7 +190,7 @@ class RL_Agent(tf.keras.Model):
 		
 			target = tf.tensor_scatter_nd_update(target, indices, updates)
 		
-			loss = self.loss_function(target, q_vals)
+			loss = self.loss(target, q_vals)
 			#tape.watch(state_batch)
 		trainable_variables = self.policy_network.trainable_variables
 		# freeze embedding networks when training the policy network
