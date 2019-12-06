@@ -40,10 +40,10 @@ class SceneMemory(tf.keras.Model):
 			if len(observations[modality].shape) == 3 or len(observations[modality].shape) == 1:
 				observations[modality] = tf.expand_dims(observations[modality], 0)
 		#print(observations['rgb'].shape)
-		observations['rgb'] = tf.image.resize(observations['rgb'],
-		size=self.downsampling_size)
+		#observations['rgb'] = tf.image.resize(observations['rgb'],
+		#size=self.downsampling_size)
 		
-		observations['rgb'] = tf.transpose(observations['rgb'], perm=[0, 3, 1, 2])
+		#observations['rgb'] = tf.transpose(observations['rgb'], perm=[0, 3, 1, 2])
 		#if 'prev_action' in self.modalities:
 			#observations['prev_action'] = tf.convert_to_tensor(observations['prev_action'], dtype=tf.float32)		
 		curr_embedding = self._embed(observations, timestep, training)

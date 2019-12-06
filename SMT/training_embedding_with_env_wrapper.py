@@ -80,7 +80,7 @@ if __name__ == '__main__':
 		bar = progressbar.ProgressBar(maxval=len(train_scene_list), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 		bar.start()
 		random.shuffle(train_scene_list)
-		for s, scene in enumerate(train_scene_list):
+		for s, scene in enumerate(train_scene_list[0:2]):
 			habitat_config.defrost()
 			habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/train/content/' + scene
 			habitat_config.freeze()

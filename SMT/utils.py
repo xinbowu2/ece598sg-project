@@ -43,16 +43,16 @@ def validate(training_iterations, logger, configs, habitat_config, agent):
 	batch_size = configs.TRAIN.BATCH_SIZE
 	horizon = configs.TASK.HORIZON
 	num_episodes = len(agent.environment.get_env().episodes)
-	num_episodes = 200
+	num_episodes = 10
 	sum_reward = 0
 	step = num_episodes//100
 
 	bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 	bar.start()
-	habitat_config.defrost()
-	habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/val_mini/val_mini.json.gz'
-	habitat_config.freeze()
-	agent.environment.get_env().reconfigure(habitat_config)
+	#habitat_config.defrost()
+	#habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/val_mini/val_mini.json.gz'
+	#habitat_config.freeze()
+	#agent.environment.get_env().reconfigure(habitat_config)
 	
 	#print(num_episodes)
 	for e in range(0, num_episodes):
@@ -64,6 +64,7 @@ def validate(training_iterations, logger, configs, habitat_config, agent):
 
 		for timestep in range(horizon-1):
 			action = agent.sample_action(evaluating=True)
+			#print(action)
 			episode_reward += agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)    
 
 		sum_reward += episode_reward 

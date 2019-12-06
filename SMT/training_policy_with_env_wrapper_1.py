@@ -42,21 +42,23 @@ if __name__ == '__main__':
 	num_iterations = configuration.TRAIN.NUM_ITERATIONS
 	#step =  num_iterations//100
 
-	train_scene_list = os.listdir('./data/datasets/pointnav/gibson/v1/train/content/')
-	episodes_per_train_scene = configuration.TRAIN.EPISODES_PER_SCENE
+	train_scene_list = os.listdir('./data/datasets/pointnav/gibson/v1/train_mini/content/')
+	#train_scene_list =['']
+	#episodes_per_train_scene = configuration.TRAIN.EPISODES_PER_SCENE
 
 	logger, final_output_dir, tb_log_dir = create_logger(
         configuration, args.cfg, 'train')
 	
-	habitat_config = habitat.get_config(config_file='tasks/pointnav_gibson.yaml')
+	habitat_config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
 	habitat_config.defrost()  
-	#habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/train/content'
-	habitat_config.DATASET.SCENES_DIR = '/data/scene_datasets/gibson'
+	habitat_config.DATASET.SPLIT = 'train_mini'
+	#habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/train/content/Aridan.json.gz'
+	#habitat_config.DATASET.SCENES_DIR = '/data/scene_datasets/gibson_1'
 	habitat_config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
-	habitat_config.SIMULATOR.TURN_ANGLE = 45
+	habitat_config.SIMULATOR.TURN_ANGLE = 30
 	habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon-1
 	habitat_config.freeze()
-
+	#print(habitat_config)
 	environment = HabitatWrapper(configuration, habitat_config)
 	environment.reset()
 	if configuration.TRAIN.OPTIMIZER == 'adam':
@@ -75,52 +77,56 @@ if __name__ == '__main__':
 	random_episodes_threshold = configuration.TASK.RANDOM_EPISODES_THRESHOLD
 	align_model_threshold = configuration.TASK.ALIGH_MODEL_THRESHOLD
 	
-	is_here = False
+	print(configuration)
+	print(habitat_config)
 
 	n = 0
+
+
+	step = len(agent.environment.get_env().episodes)//100
+	print('step', step)
+	#episodes_per_train_scene = 100
+	episodes_per_train_scene  = len(agent.environment.get_env().episodes)
+	print(len(agent.environment.get_env().episodes))
 	for i in range(num_iterations):
-		bar = progressbar.ProgressBar(maxval=len(train_scene_list), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
-		bar.start()
-		random.shuffle(train_scene_list)
-		for s, scene in enumerate(train_scene_list):
-			habitat_config.defrost()
-			habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/train/content/' + scene
-			habitat_config.freeze()
-			agent.environment.get_env().reconfigure(habitat_config)
+		bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+		bar.start()	
 		 	#agent.reset() # ??
 
 			#num_episodes = len(agent.environment.get_env().episodes)
 			#sampled_episodes = random.sample(range(0, num_episodes), episodes_per_train_scene)
-			#agent.environment.get_env().episodes(episodes=random.shuffle(agent.environment.get_env().episodes))
-			#print(len(agent.environment.get_env().episodes))
-			for e in range(episodes_per_train_scene):
-				agent.reset()
-				if n < random_episodes_threshold:
-					training = False
-				else:
-					#print(n)
-					#print('finish filling up replay buffer and start training')
-					training = True
-				if n%align_model_threshold == 1 and training:
-					if not is_here:
-						print('align the models')
-						is_here = True
-					agent.align_target_model()
-				for timestep in range(horizon-1):
-					action = agent.sample_action()
-					agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
-				#if n%10 == 0:
-					#print(n)						
-				n += 1
-				if n%2000 == 0:
-					validate(i, logger, configuration, habitat_config, agent)
-			bar.update(s+1)					
+			#agent.environment.get_env().episodes = random.shuffle(agent.environment.get_env().episodes)
 
+		for e in range(episodes_per_train_scene):
+			agent.reset()
+			if n < random_episodes_threshold:
+				training = False
+			else:
+				#print('finish filling up replay buffer and start training')
+				training = True
+			if n%align_model_threshold == 1 and training:
+				#print('align the models')
+				agent.align_target_model()
+			for timestep in range(horizon-1):
+				action = agent.sample_action(training=training)
+				agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
+			if n%10 == 0:
+				print(agent.environment.get_env().current_episode)	
+				#print(len(agent.experience_replay))
+				print(n)
+			n += 1
+			bar.update(e/step+1)	
+				
+			if (n+1)%1500 == 0:
+				logger.info('saving checkpoint %i'%i)
+				agent.save_weights(final_output_dir + '/checkpoints/cp-{}.ckpt'.format(i))
+				validate(i, logger, configuration, habitat_config, agent)
 
 		bar.finish()
-		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations-1))
+		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations))
+		logger.info('saving checkpoint %i'%i)
 		agent.save_weights(final_output_dir + '/checkpoints/cp-{}.ckpt'.format(i))
-		#validate(i, logger, configuration, habitat_config, agent)
+		validate(i, logger, configuration, habitat_config, agent)
 		
 
 	
