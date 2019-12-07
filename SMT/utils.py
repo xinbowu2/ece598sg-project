@@ -45,7 +45,7 @@ def validate(training_iterations, logger, configs, habitat_config, agent):
 	num_episodes = len(agent.environment.get_env().episodes)
 	num_episodes = 10
 	sum_reward = 0
-	step = num_episodes//100
+	#step = num_episodes//100
 
 	bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 	bar.start()
@@ -59,7 +59,7 @@ def validate(training_iterations, logger, configs, habitat_config, agent):
 		# Reset the enviroment
 		#print("EPISODE ", e)
 		episode_reward = 0
-
+		
 		agent.reset() #reset the environment, sets the episode-index to e
 
 		for timestep in range(horizon-1):
@@ -69,9 +69,11 @@ def validate(training_iterations, logger, configs, habitat_config, agent):
 
 		sum_reward += episode_reward 
 		
-		if e%step == 0:
-			bar.update(e//step + 1)
-
+		
+		bar.update(10*e + 1)
+		
+		#agent.environment.get_env().close()
+		agent.environment.get_env()._current_episode_index = 0
 	bar.finish()
     
 	logger.info('Validation reward for %i training iterations: %f' % (training_iterations, sum_reward/num_episodes))

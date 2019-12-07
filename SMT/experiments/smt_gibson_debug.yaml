@@ -3,8 +3,8 @@ CUDNN:
   DETERMINISTIC: false
   ENABLED: true
 GPUS: (0,1)
-OUTPUT_DIR: 'output_test_policy'
-LOG_DIR: 'log_test_policy'
+OUTPUT_DIR: 'output_test_embedding_1'
+LOG_DIR: 'log_test_embedding_1'
 WORKERS: 4
 PRINT_FREQ: 20
 
@@ -25,8 +25,8 @@ TASK:
   REWARD_RATE: 5.0
   NUM_ACTIONS: 3
   ACTION_NAMES: ['move_forward', 'turn left', 'turn right']
-  RANDOM_EPISODES_THRESHOLD: 1000
-  ALIGH_MODEL_THRESHOLD: 200
+  RANDOM_EPISODES_THRESHOLD: 100
+  ALIGH_MODEL_THRESHOLD: 150
   HORIZON: 100
 
 TRAIN:
