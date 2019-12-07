@@ -66,7 +66,7 @@ class RL_Agent(tf.keras.Model):
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1))
 			#pdb.set_trace()
 			action = tf.keras.backend.get_value(tf.keras.backend.argmax(q_vals[:,0,:], 1)[0])
-			print(action)
+			#print(action)
 			return action
 		elif np.random.rand() > self.epsilon: 
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
