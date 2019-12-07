@@ -13,6 +13,7 @@ def transform_rgb_bgr(image):
 
 
 def example():
+	trajectory_directory = 'trajectories/Adrian/'
 	config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
 	config.defrost()
 	config.DATASET.SPLIT = 'train_mini'
@@ -27,7 +28,7 @@ def example():
 	position_list.append(env.sim.get_agent_state().position)
 	plt.imshow(observations["rgb"])
 	plt.show(block=False)
-	plt.savefig('trajectory/'+str(0)+'.png')
+	plt.savefig(trajectory_directory+'images/'+str(0)+'.png')
 	#cv2.imshow("RGB", transform_rgb_bgr(observations["rgb"]))
 
 	print("Agent stepping around inside environment.")
@@ -41,10 +42,10 @@ def example():
 		count_steps += 1
 		plt.imshow(observations["rgb"])
 		plt.show(block=False)
-		plt.savefig('trajectory/'+str(count_steps)+'.png')
+		plt.savefig(trajectory_directory+'/images/'+str(count_steps)+'.png')
 		#cv2.imshow("RGB", transform_rgb_bgr(observations["rgb"]))
-	np.array(action_list).dump(open('action_list.npy', 'wb'))
-	np.array(position_list).dump(open('position_list.npy', 'wb'))
+	np.array(action_list).dump(open(trajectory_directory+'actions.npy', 'wb'))
+	np.array(position_list).dump(open(trajectory_directory+'positions.npy', 'wb'))
 	print("Episode finished after {} steps.".format(count_steps))
 
 if __name__ == "__main__":
