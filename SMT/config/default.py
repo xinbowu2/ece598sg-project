@@ -23,6 +23,7 @@ _C.LOSS = CN()
 
 _C.MODEL = CN()
 _C.MODEL.NAME = 'smt'
+_C.MODEL.CHECKPOINT = ''
 
 # DATASET related params
 _C.DATASET = CN()
@@ -51,9 +52,12 @@ _C.TRAIN.OPTIMIZER = 'adam'
 _C.TRAIN.LR = 5e-4
 _C.TRAIN.NUM_ITERATIONS = 100
 _C.TRAIN.EPISODES_PER_SCENE = 20
+_C.TRAIN.HORIZON = 100
+_C.TRAIN.RESUME = False
 
 # testing
 _C.TEST = CN()
+_C.TEST.HORIZON = 500
 
 # loss
 _C.LOSS = CN()

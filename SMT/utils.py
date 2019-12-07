@@ -1,7 +1,9 @@
 import os
 import logging
 import time
+import random
 from pathlib import Path
+from dataset import HabitatWrapper
 
 import progressbar
 
@@ -39,9 +41,17 @@ def create_logger(cfg, cfg_name, phase='train'):
 
     return logger, str(final_output_dir), str(tensorboard_log_dir)
 
-def validate(training_iterations, logger, configs, habitat_config, agent):
+def validate(training_iterations, logger, configs, habitat_config, agent, random_policy=False):
 	batch_size = configs.TRAIN.BATCH_SIZE
-	horizon = configs.TASK.HORIZON
+	horizon = configs.TEST.HORIZON
+	horizon_to_resume = habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS
+	habitat_config.defrost()
+	habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon-1
+	habitat_config.freeze()
+	#environment_to_resume = agent.environment.get_env()
+	agent.environment.get_env().close()
+	agent.environment = HabitatWrapper(configs, habitat_config)
+	
 	num_episodes = len(agent.environment.get_env().episodes)
 	num_episodes = 10
 	sum_reward = 0
@@ -63,10 +73,13 @@ def validate(training_iterations, logger, configs, habitat_config, agent):
 		agent.reset() #reset the environment, sets the episode-index to e
 
 		for timestep in range(horizon-1):
-			action = agent.sample_action(evaluating=True)
+			if random_policy:
+				action = random.randint(0, agent.action_size-1)				
+			else:
+				action = agent.sample_action(evaluating=True)
 			#print(action)
 			episode_reward += agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)    
-
+			#print(timestep)
 		sum_reward += episode_reward 
 		
 		
@@ -74,6 +87,11 @@ def validate(training_iterations, logger, configs, habitat_config, agent):
 		
 		#agent.environment.get_env().close()
 		agent.environment.get_env()._current_episode_index = 0
+	agent.environment.get_env().close()
+	habitat_config.defrost()
+	habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon_to_resume
+	habitat_config.freeze()
+	agent.environment = HabitatWrapper(configs, habitat_config)
 	bar.finish()
-    
+    	
 	logger.info('Validation reward for %i training iterations: %f' % (training_iterations, sum_reward/num_episodes))

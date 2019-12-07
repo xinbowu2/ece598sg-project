@@ -71,20 +71,23 @@ class SceneMemory(tf.keras.Model):
 
 	def _embed(self, observations, timestep, training=False):
 		#print('______________________', timestep)
-		temporal_embedding = tf.math.exp(tf.convert_to_tensor(timestep,dtype=tf.float32))
+		'''
+		temporal_embedding = tf.math.exp(-tf.convert_to_tensor(timestep,dtype=tf.float32))
 		if temporal_embedding.shape[0] == 1:
 			temporal_embedding = tf.expand_dims(temporal_embedding, 0)
 		else:
 			temporal_embedding = tf.reshape(temporal_embedding, [-1,1])
-		
+		'''
 		embeddings = []
 		for modality in self.modalities:
 			if modality == 'rgb':
 				embeddings.append(self.embedding_nets[modality](observations[modality], training))
 			else:
+				'''
 				concat_embedding = tf.concat([observations[modality], temporal_embedding], axis=1)
 				embeddings.append(self.embedding_nets[modality](concat_embedding))
-				
+				'''
+				embeddings.append(self.embedding_nets[modality](observations[modality]))
 
 
 		return self.fc(tf.concat(embeddings, axis=1))

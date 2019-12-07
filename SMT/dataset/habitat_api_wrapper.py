@@ -78,6 +78,10 @@ class HabitatWrapper:
     return self.prev_action
 
   def get_reward(self):
+    '''
+    if self.prev_action == 0:
+      return 5.0
+    '''
     curr_cell_pos = [self.last_cell_x, self.last_cell_y]
 
     # calculate displacement from last cell position

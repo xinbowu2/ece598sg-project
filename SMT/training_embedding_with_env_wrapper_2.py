@@ -73,6 +73,10 @@ if __name__ == '__main__':
 		raise error('%s is not supported' % configuration.LOSS.TYPE)
 
 	agent  = RL_Agent(environment, optimizer, loss_function, batch_size=batch_size, training_embedding=True, num_actions=configuration.TASK.NUM_ACTIONS)
+	
+	if configuration.TRAIN.RESUME:
+		agent.trace_model()
+		agent.load_weights(final_output_dir + '/checkpoints/' + configuration.MODEL.CHECKPOINT)
 
 	#num_episodes = len(environment.env.episodes)
 	random_episodes_threshold = configuration.TASK.RANDOM_EPISODES_THRESHOLD
@@ -82,7 +86,6 @@ if __name__ == '__main__':
 	print(habitat_config)
 
 	n = 0
-
 
 	step = len(agent.environment.get_env().episodes)//100
 	print('step', step)
@@ -98,11 +101,13 @@ if __name__ == '__main__':
 			#agent.environment.get_env().episodes = random.shuffle(agent.environment.get_env().episodes)
 
 		for e in range(episodes_per_train_scene):
+			agent.environment.get_env()._current_episode_index = random.randint(0, 10)
+			#print(agent.environment.get_env()._current_episode_index)
 			agent.reset()
 			if n < random_episodes_threshold:
 				training = False
-			else:
-				#print('finish filling up replay buffer and start training')
+			elif not training:
+				print('finish filling up replay buffer and start training')
 				training = True
 			if n%align_model_threshold == 1 and training:
 				#print('align the models')
@@ -114,7 +119,6 @@ if __name__ == '__main__':
 				#print(agent.environment.get_env().current_episode)	
 				print(n)
 			n += 1
-			agent.environment.get_env()._current_episode_index = 0
 			#agent.environment.get_env().episode_iterator = iterator
 			#agent.environment.get_env().close()
 			#agent.environment.get_env().reconfigure(habitat_config)
@@ -122,8 +126,8 @@ if __name__ == '__main__':
 			bar.update(e/step+1)	
 				
 			if (n+1)%200 == 0:
-				logger.info('saving checkpoint %i'%i)
-				agent.save_weights(final_output_dir + '/checkpoints/cp-{}.ckpt'.format(i))
+				logger.info('saving checkpoint after episodes %i'%n)
+				agent.save_weights(final_output_dir + '/checkpoints/cp-episode{}.ckpt'.format(n))
 				validate(i, logger, configuration, habitat_config, agent)
 
 		bar.finish()
