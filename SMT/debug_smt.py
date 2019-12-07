@@ -37,6 +37,8 @@ def parse_args():
 
 if __name__ == '__main__':
 	args = parse_args()
+	print('TESTING FOR GPU', tf.test.is_gpu_available())
+	
 	horizon = configuration.TASK.HORIZON
 	batch_size = configuration.TRAIN.BATCH_SIZE
 	num_iterations = configuration.TRAIN.NUM_ITERATIONS
@@ -75,7 +77,7 @@ if __name__ == '__main__':
 	else:
 		raise error('%s is not supported' % configuration.LOSS.TYPE)
 
-	agent  = RL_Agent(environment, optimizer, loss_function, batch_size=batch_size, training_embedding=True, num_actions=configuration.TASK.NUM_ACTIONS)
+	agent  = RL_Agent(environment, optimizer, loss_function, batch_size=batch_size, training_embedding=False, num_actions=configuration.TASK.NUM_ACTIONS)
 	
 	if configuration.TRAIN.RESUME:
 		agent.trace_model()
