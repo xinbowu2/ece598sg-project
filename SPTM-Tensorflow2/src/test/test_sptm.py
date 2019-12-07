@@ -3,15 +3,12 @@ import pdb
 import habitat
 import random
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import glob
+
 print("IMPORTS COMPLETE")
-if __name__ == '__main__':
-    print("HELLOOOO")
-    images = []
-    actions = []
-    positions = []
 
-    assert len(images) == len(actions) == len(positions), 'Length of inputs not the same'
-
+def test_action_predictor(images, actions):
     model = ResNet18(3)
     model.build((32, 256, 256, 9))
     model.load_weights("../experiments/action/experiment1/models/model.000250.h5")
@@ -34,3 +31,20 @@ if __name__ == '__main__':
             print(model.test_on_batch(x, y, sample_weight=None, reset_metrics=False))
             batch_x = []
             batch_y = []
+
+def main():
+
+if __name__ == '__main__':
+    print("HELLOOOO")
+    trajectory_dir = 'trajectories/Adrian'
+
+    images = []
+    for im_path in glob.glob(trajectory_dir + "/images/*.png"):
+        images.append(mpimg.imread(im_path))
+    actions = np.load(trajectory_dir + 'actions.npy') 
+    positions = np.load(trajectory_dir + 'positions.npy') 
+
+    assert len(images) == len(actions) == len(positions), 'Length of inputs not the same'
+
+    test_action_predictor(images, actions)
+
