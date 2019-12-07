@@ -56,11 +56,12 @@ if __name__ == '__main__':
 	#habitat_config.DATASET.SCENES_DIR = '/data/scene_datasets/gibson_1'
 	habitat_config.SIMULATOR.AGENT_0.SENSORS = ['RGB_SENSOR'] 
 	habitat_config.SIMULATOR.TURN_ANGLE = 30
-	habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon
+	habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon-1
 	habitat_config.freeze()
 	#print(habitat_config)
 	environment = HabitatWrapper(configuration, habitat_config)
 	environment.reset()
+	#iterator = environment.episode_iterator.deepcopy()
 	if configuration.TRAIN.OPTIMIZER == 'adam':
 		optimizer = Adam(learning_rate=configuration.TRAIN.LR)
 	else:
@@ -109,12 +110,20 @@ if __name__ == '__main__':
 			for timestep in range(horizon-1):
 				action = agent.sample_action(training=training)
 				agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
-			if n%10 == 0:	
+			if n%10 == 0:
+				#print(agent.environment.get_env().current_episode)	
 				print(n)
 			n += 1
+			agent.environment.get_env()._current_episode_index = 0
+			#agent.environment.get_env().episode_iterator = iterator
+			#agent.environment.get_env().close()
+			#agent.environment.get_env().reconfigure(habitat_config)
+			#agent.environment = HabitatWrapper(configuration, habitat_config)
 			bar.update(e/step+1)	
 				
-			if (n+1)%2000 == 0:
+			if (n+1)%200 == 0:
+				logger.info('saving checkpoint %i'%i)
+				agent.save_weights(final_output_dir + '/checkpoints/cp-{}.ckpt'.format(i))
 				validate(i, logger, configuration, habitat_config, agent)
 
 		bar.finish()

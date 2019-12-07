@@ -61,10 +61,14 @@ class RL_Agent(tf.keras.Model):
 
 	#choose which action to take using epsilon-greedy policy
 	def sample_action(self, training=False, evaluating=False):
-		if evaluating or (np.random.rand() > self.epsilon and training): 
+		if evaluating or np.random.rand() > self.epsilon: 
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
 			#print(q_vals)
-			return tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
+			action = tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
+			if action > self.action_size -1:
+				return random.randint(0, self.action_size-1)
+			else:
+				return action
 		else:
 			#print('action size: ', self.action_size)
 			return random.randint(0, self.action_size-1) #?? why -2 here
