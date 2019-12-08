@@ -8,12 +8,15 @@ from common import *
 
 print("IMPORTS COMPLETE")
 
-  action_mapping = {      
-      0: '"Move Forward"',
-      1: '"Turn Left"',
-      2: '"Turn Right"',
-      3: '"Stop"'
-  }
+action_mapping = {      
+	0: '"Move Forward"',
+	1: '"Turn Left"',
+	2: '"Turn Right"',
+	3: '"Stop"'
+}
+
+def distance(pos1, pos2):
+	return math.sqrt((pos2[0] - pos1[0])**2 + (pos2[1] - pos1[1])**2)
 
 def test_action_predictor(images, actions):
 	model = ResNet18(3)
@@ -72,6 +75,24 @@ def test_edge_predictor(images, actions, positions):
 				batch_x = []
 				batch_y = []
 
+def visualize_edge_predictor(index1, index2, images, positions):
+	fig = plt.figure()
+	plt.plot(*positions.T, 'b-')
+	plt.plot([positions[index1,0], positions[index2,0]], [positions[index1,1], positions[index2,1]],'r-')
+	plt.annotate("Start", positions[index1], textcoords="offset points", xytext=(0,10), ha='center')
+	plt.annotate("End", positions[index2], textcoords="offset points", xytext=(0,10), ha='center')
+	fig.savefig('edge_prediction_trajectory.png')
+
+	fig = plt.figure(figsize=(75,75))
+	sub = fig.add_subplot(1,2,1)
+	sub.set_title('Start')
+	sub.imshow(images[index1], interpolation='nearest')
+	sub = fig.add_subplot(1,2,2)
+	sub.set_title('End')
+	sub.imshow(images[index2], interpolation='nearest')
+	# fig.suptitle('Distance: ' + str(distance(positions[index1], positions[index2])), fontsize=12)
+	fig.savefig('edge_prediction_images.png')
+
 if __name__ == '__main__':
 	print("HELLOOOO")
 	trajectory_dir = 'trajectories/Adrian'
@@ -85,6 +106,7 @@ if __name__ == '__main__':
 	images = [center_crop_resize(plt.imread(x)[:,:,:3], 256) for x in image_paths][:-1]
 	actions = np.load(trajectory_dir + '/actions.npy', allow_pickle=True)[:-1]
 	positions = np.load(trajectory_dir + '/positions.npy', allow_pickle=True)[:-1]
+	positions = np.array([positions[:,2], positions[:,0]]).T
 	assert len(images) == len(actions)+1 == len(positions), 'Length of inputs not the same'
 
 	test_action_predictor(images, actions)
