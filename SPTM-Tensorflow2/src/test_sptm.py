@@ -18,13 +18,19 @@ action_mapping = {
 def distance(pos1, pos2):
 	return math.sqrt((pos2[0] - pos1[0])**2 + (pos2[1] - pos1[1])**2)
 
-def test_action_predictor(images, actions):
-	model = ResNet18(3)
-	model.build((32, 256, 256, 9))
-	model.load_weights('action_model.h5')
-	adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-	model.compile(loss='sparse_categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+action_predictor = ResNet18(3)
+action_predictor.build((32, 256, 256, 9))
+action_predictor.load_weights('action_model.h5')
+action_adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+action_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=action_adam, metrics=['accuracy'])
 
+edge_predictor = SiameseResnet(2)
+edge_predictor.build((32, 256, 256, 6))
+edge_predictor.load_weights('edge_model.h5')
+edge_adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+edge_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=edge_adam, metrics=['accuracy'])
+
+def test_action_predictor(images, actions):
 	batch_x = []
 	batch_y = []
 	for index in range(0, len(images) - 1):
@@ -41,25 +47,30 @@ def test_action_predictor(images, actions):
 			batch_x = tf.stack(batch_x, axis=0)
 			batch_y = tf.stack(batch_y, axis=0)
 			pdb.set_trace()
-			print(model.evaluate(batch_x, batch_y, batch_size = len(batch_x)))
+			print(action_predictor.evaluate(batch_x, batch_y, batch_size = len(batch_x)))
 			batch_x = []
 			batch_y = []
 
-def visualize_action_prediction(current_x, future_x, prediction, action):
+def visualize_action_prediction(index1, index2, images, actions):
+	if index1 == 0:
+		previous_x = images[index1]
+	else:
+		previous_x = images[index1 - 1]
+
+	current_x = images[index1]
+	future_x = images[index2]
+	prediction = action_predictor.predict(np.concatenate((previous_x, current_x, future_x), axis=2)).argmax(axis=-1)
+	action = actions[index1]
 	fig = plt.figure(figsize=(75,75))
 	sub = fig.add_subplot(1,2,1)
 	sub.imshow(current_x, interpolation='nearest')
 	sub = fig.add_subplot(1,2,2)
 	sub.imshow(future_x, interpolation='nearest')
 	fig.suptitle('Prediction: ' + action_mapping[prediction] + " Real Action: " + action_mapping[action], fontsize=12)
+	plt.show()
 	fig.savefig('action_prediction.png')
 
 def test_edge_predictor(images, actions, positions):
-	model = SiameseResnet(2)
-	model.build((32, 256, 256, 6))
-	model.load_weights('edge_model.h5')
-	adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-	model.compile(loss='sparse_categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
 
 	batch_x = []
 	batch_y = []
@@ -71,7 +82,7 @@ def test_edge_predictor(images, actions, positions):
 			batch_x.append(np.concatenate((current_x, future_x), axis=2))
 			batch_y.append(index2 - index < 8)
 			if len(batch) == 64 or (index1 == len(images) - 2 and index2 == len(images) - 2):
-				print(model.test_on_batch(x, y, sample_weight=None, reset_metrics=False))
+				print(edge_predictor.test_on_batch(x, y, sample_weight=None, reset_metrics=False))
 				batch_x = []
 				batch_y = []
 
@@ -109,6 +120,7 @@ if __name__ == '__main__':
 	positions = np.array([positions[:,2], positions[:,0]]).T
 	assert len(images) == len(actions)+1 == len(positions), 'Length of inputs not the same'
 
-	test_action_predictor(images, actions)
+	# test_action_predictor(images, actions)
+	visualize_action_predictor(50, 51, images, actions)
 
 
