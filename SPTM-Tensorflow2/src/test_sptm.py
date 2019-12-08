@@ -34,8 +34,8 @@ edge_adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999,
 edge_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=edge_adam, metrics=['accuracy'])
 
 def test_action_predictor(images, actions):
-	batch_x = []
-	batch_y = []
+	x = []
+	y = []
 	for index in range(0, len(images) - 1):
 		if index > 0:
 			previous_x = images[index - 1]
@@ -43,16 +43,10 @@ def test_action_predictor(images, actions):
 			previous_x = images[0]
 		current_x = images[index]
 		future_x = images[index + 1]
-		batch_x.append(np.concatenate((previous_x, current_x, future_x), axis=2))
-		batch_y.append(actions[index])
-		if index == len(images) - 2:
-			print('HELLO')
-			batch_x = tf.stack(batch_x, axis=0)
-			batch_y = tf.stack(batch_y, axis=0)
-			pdb.set_trace()
-			print(action_predictor.evaluate(batch_x, batch_y, batch_size = len(batch_x)))
-			batch_x = []
-			batch_y = []
+		x.append(np.concatenate((previous_x, current_x, future_x), axis=2))
+		y.append(actions[index])
+
+	print(action_predictor.evaluate(np.array(x), np.array(y), batch_size=64))
 
 def visualize_action_prediction(index1, index2, images, actions):
 	if index1 == 0:
@@ -63,20 +57,22 @@ def visualize_action_prediction(index1, index2, images, actions):
 	current_x = images[index1]
 	future_x = images[index2]
 	sample = np.concatenate((previous_x, current_x, future_x), axis=2)
-	prediction = action_predictor.predict(np.array([sample])).argmax(axis=-1)[0]
+	output = action_predictor.predict(np.array([sample]))[0] 
+	prediction = output.argmax()
+	
 	action = actions[index1]
 	fig = plt.figure(figsize=(75,75))
 	sub = fig.add_subplot(1,2,1)
 	sub.imshow(current_x, interpolation='nearest')
 	sub = fig.add_subplot(1,2,2)
 	sub.imshow(future_x, interpolation='nearest')
-	fig.suptitle('Prediction: ' + action_mapping[prediction] + " Real Action: " + action_mapping[action], fontsize=12)
+	fig.suptitle('Prediction: %s (%f) Real Action: %s' % (action_mapping[prediction], output[prediction], action_mapping[action]), fontsize=12)
 	plt.show()
 	fig.savefig('action_prediction.png')
 
 def test_edge_predictor(images, actions, positions):
-	batch_x = []
-	batch_y = []
+	x = []
+	y = []
 	for index1 in range(0, len(images) - 1):
 		for index2 in range(index1, len(images) - 1):
 			current_x = images[index1]
@@ -84,17 +80,13 @@ def test_edge_predictor(images, actions, positions):
 
 			dist = distance(positions[index1], positions[index2])
 			if dist < MAX_EDGE_DIST:
-				batch_x.append(np.concatenate((current_x, future_x), axis=2))
-				batch_y.append(1)
+				x.append(np.concatenate((current_x, future_x), axis=2))
+				y.append(1)
 			elif dist > MAX_EDGE_DIST * NEG_SAMPLE_MULT:
-				batch_x.append(np.concatenate((current_x, future_x), axis=2))
-				batch_y.append(0)
-			if len(batch_x) == 64 or (index1 == len(images) - 2 and index2 == len(images) - 2):
-				batch_x = np.array(batch_x)
-				batch_y = np.array(batch_y)	
-				print(edge_predictor.evaluate(batch_x, batch_y, batch_size=len(batch_x)))
-				batch_x = []
-				batch_y = []
+				x.append(np.concatenate((current_x, future_x), axis=2))
+				y.append(0)
+	 
+	print(edge_predictor.evaluate(np.array(x), np.array(y), batch_size=64))
 
 def visualize_edge_prediction(index1, index2, images, positions):
 	fig = plt.figure()
@@ -116,6 +108,16 @@ def visualize_edge_prediction(index1, index2, images, positions):
 	plt.show()
 	fig.savefig('edge_prediction_images.png')
 
+def avg_dist(positions):
+	sum_dist = 0
+	num_samples = 0
+	for index in range(len(positions) - 5):
+		sum_dist += distance(positions[index], positions[index + 5])
+		num_samples += 1
+
+	return sum_dist / num_samples
+		
+
 if __name__ == '__main__':
 	print("HELLOOOO")
 	trajectory_dir = 'trajectories/Adrian'
@@ -131,7 +133,9 @@ if __name__ == '__main__':
 	positions = np.array([positions[:,2], positions[:,0]]).T
 	assert len(images) == len(actions)+1 == len(positions), 'Length of inputs not the same'
 
-	# test_action_predictor(images, actions)
-	# visualize_action_prediction(0, 1, images, actions)
-	test_edge_predictor(images, actions, positions)
-	#visualize_edge_prediction(100, 110, images, positions)
+	# print(avg_dist(positions))
+
+	#test_action_predictor(images, actions)
+	visualize_action_prediction(0, 1, images, actions)
+	# test_edge_predictor(images, actions, positions)
+	#visualize_edge_prediction(100, 105, images, positions)
