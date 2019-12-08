@@ -2,6 +2,7 @@ import tensorflow as tf
 from models.scene_memory import SceneMemory
 from models.att_policy import AttentionPolicyNet
 import dataset
+import copy
 #from config.models import *
 import collections
 import numpy as np
@@ -64,7 +65,7 @@ class RL_Agent(tf.keras.Model):
 		self.action_list = []
 		self.reward_list = []
 
-		return self.curr_observations
+		return copy.deepcopy(self.curr_observations)
 
 	#choose which action to take using epsilon-greedy policy
 	def sample_action(self, training=False, evaluating=False):
@@ -118,8 +119,8 @@ class RL_Agent(tf.keras.Model):
 				self.action_list = []
 				self.reward_list = []
 
-		self.current_observations = new_observations
-		return reward, self.curr_observations 
+		self.curr_observations = new_observations
+		return [reward, copy.deepcopy(self.curr_observations)]
 
 	def store_observations(self, timestep, curr_observations, action, reward, next_observations, done):
 		self.experience_replay.append((timestep, curr_observations, action, reward, next_observations, done))

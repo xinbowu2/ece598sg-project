@@ -16,7 +16,7 @@ import config
 from config import update_config
 from config import configuration
 from dataset import HabitatWrapper  
-from utils import create_logger, validate
+from utils import create_logger, validate, visualize_trajectory
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Train segmentation network')
@@ -91,9 +91,5 @@ if __name__ == '__main__':
 	#validate(i, logger, configuration, habitat_config, agent, random_policy=True)
 	
 	logger.info('Rewards per Episode Achieved by Learned Policy: ')
-	validate(i, logger, configuration, habitat_config, agent, random_policy=False)
-
-	
-		
-
-	
+	visualize_trajectory([12], configuration, habitat_config, agent, random_policy=True) 
+	#validate(i, logger, configuration, habitat_config, agent, random_policy=False)	
