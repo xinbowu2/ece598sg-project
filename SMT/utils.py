@@ -4,6 +4,8 @@ import time
 import random
 from pathlib import Path
 from dataset import HabitatWrapper
+import matplotlib.pyplot as plt
+import numpy as np
 
 import progressbar
 
@@ -40,6 +42,57 @@ def create_logger(cfg, cfg_name, phase='train'):
     tensorboard_log_dir.mkdir(parents=True, exist_ok=True)
 
     return logger, str(final_output_dir), str(tensorboard_log_dir)
+
+#which episodes to visualize? 
+#random_policy=False means follow the policy
+def visualize_trajectory(episode_indices, configs, habitat_config, agent, random_policy=False):
+	horizon = configs.TEST.HORIZON
+	horizon_to_resume = habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS
+	habitat_config.defrost()
+	habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon-1
+	habitat_config.freeze()
+	#environment_to_resume = agent.environment.get_env()
+	agent.environment.get_env().close()
+	agent.environment = HabitatWrapper(configs, habitat_config)
+	sum_reward=0
+
+	fig = plt.figure(frameon=False)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+
+	for idx in episode_indices:
+		# Reset the enviroment
+		#print("EPISODE ", e)
+		observations = agent.reset(idx) #reset the environment, sets the episode-index to e
+	    ax.imshow(observations["rgb"])
+	    plt.show(block=False)
+
+		for timestep in range(horizon-1):
+			input("Press any key to proceed: ")			
+			if random_policy:
+				action = random.randint(0, agent.action_size-1)				
+			else:
+				action = agent.sample_action(evaluating=True)
+			#print(action)
+			episode_reward, observations += agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)    
+			#print(timestep)
+			ax.imshow(observations["rgb"])
+	    	plt.show(block=False)
+
+		sum_reward += episode_reward 
+		
+		
+		bar.update(10*e + 1)
+		
+		#agent.environment.get_env().close()
+		#agent.environment.get_env()._current_episode_index = 0
+
+	agent.environment.get_env().close()
+	habitat_config.defrost()
+	habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon_to_resume
+	habitat_config.freeze()
+	agent.environment = HabitatWrapper(configs, habitat_config)
 
 def validate(training_iterations, logger, configs, habitat_config, agent, random_policy=False):
 	batch_size = configs.TRAIN.BATCH_SIZE
@@ -95,3 +148,4 @@ def validate(training_iterations, logger, configs, habitat_config, agent, random
 	bar.finish()
     	
 	logger.info('Validation reward for %i training iterations: %f' % (training_iterations, sum_reward/num_episodes))
+

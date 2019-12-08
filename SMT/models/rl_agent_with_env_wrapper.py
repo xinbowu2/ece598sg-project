@@ -50,15 +50,20 @@ class RL_Agent(tf.keras.Model):
 		self.scene_memory(observations, timestep=timestep, training_embedding=self.training_embedding)
 
 	#resets the environment and sets current_episode number to r
-	def reset(self):
+	def reset(self, episode_index=None):
 		self.scene_memory.reset()
 		#self.environment.get_env()._current_episode = self.environment.get_env().episodes[episode_idx]
+
+		if episode_index is not None:
+			self.environment._current_episode_index = episode_index
 
 		self.curr_observations = self.environment.reset()
 		self.update_scene_memory(self.curr_observations, timestep=[0.0]) 
 
 		self.action_list = []
 		self.reward_list = []
+
+		return self.curr_observations
 
 	#choose which action to take using epsilon-greedy policy
 	def sample_action(self, training=False, evaluating=False):
@@ -113,7 +118,7 @@ class RL_Agent(tf.keras.Model):
 				self.reward_list = []
 
 		self.current_observations = new_observations
-		return reward 
+		return reward, self.curr_observations 
 
 	def store_observations(self, timestep, curr_observations, action, reward, next_observations, done):
 		self.experience_replay.append((timestep, curr_observations, action, reward, next_observations, done))
