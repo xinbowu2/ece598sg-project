@@ -66,9 +66,9 @@ class HabitatWrapper:
         self.prev_action = self.current_action
         self.observations = self.process_observation(self.env.step(self.current_action))
         self.curr_x, _, self.curr_y = self.env.sim.get_agent_state().position
-        #print('in advance action for position:', self.curr_x, curr_z, self.curr_y)
+        #print('in advance action for position:', self.curr_x, self.curr_y)
         self.is_episode_finished = self.env.episode_over
-
+	
         return self.observations
 
   def is_terminated(self):
@@ -98,6 +98,8 @@ class HabitatWrapper:
     #print(self.cell_width, ' ', self.cell_height)
     # no reward if the agent does not enter a new unvisited cell
     if curr_cell_pos == [self.last_cell_x, self.last_cell_y] or curr_cell_pos in self.visited_cells:
+      self.last_cell_x = curr_cell_pos[0]
+      self.last_cell_y = curr_cell_pos[1]
       return 0.0
 
     # update new cell information

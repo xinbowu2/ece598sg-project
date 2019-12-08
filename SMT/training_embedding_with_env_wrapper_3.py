@@ -16,7 +16,7 @@ import config
 from config import update_config
 from config import configuration
 from dataset import HabitatWrapper  
-from utils import create_logger, validate, visualize_trajectory
+from utils import create_logger, validate
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Train segmentation network')
@@ -37,7 +37,6 @@ def parse_args():
 
 if __name__ == '__main__':
 	args = parse_args()
-	
 	horizon = configuration.TASK.HORIZON
 	batch_size = configuration.TRAIN.BATCH_SIZE
 	num_iterations = configuration.TRAIN.NUM_ITERATIONS
@@ -49,8 +48,6 @@ if __name__ == '__main__':
 
 	logger, final_output_dir, tb_log_dir = create_logger(
         configuration, args.cfg, 'train')
-
-	logger.info('TESTING FOR GPU', tf.test.is_gpu_available())
 	
 	habitat_config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
 	habitat_config.defrost()  
@@ -64,9 +61,6 @@ if __name__ == '__main__':
 	#print(habitat_config)
 	environment = HabitatWrapper(configuration, habitat_config)
 	environment.reset()
-
-	logger.info(configuration)
-	logger.info(habitat_config)
 	#iterator = environment.episode_iterator.deepcopy()
 	if configuration.TRAIN.OPTIMIZER == 'adam':
 		optimizer = Adam(learning_rate=configuration.TRAIN.LR)
@@ -78,19 +72,63 @@ if __name__ == '__main__':
 	else:
 		raise error('%s is not supported' % configuration.LOSS.TYPE)
 
-	agent  = RL_Agent(environment, optimizer, loss_function, batch_size=batch_size, training_embedding=False, num_actions=configuration.TASK.NUM_ACTIONS)
+	agent  = RL_Agent(environment, optimizer, loss_function, batch_size=batch_size, training_embedding=True, num_actions=configuration.TASK.NUM_ACTIONS)
 	
 	if configuration.TRAIN.RESUME:
 		agent.trace_model()
 		agent.load_weights(final_output_dir + '/checkpoints/' + configuration.MODEL.CHECKPOINT)
-		logger.info('loaded checkpoint: %s'%configuration.MODEL.CHECKPOINT)
+
 	#num_episodes = len(environment.env.episodes)
+	random_episodes_threshold = configuration.TASK.RANDOM_EPISODES_THRESHOLD
+	align_model_threshold = configuration.TASK.ALIGH_MODEL_THRESHOLD
 	
-	i = 0	
+	logger.info(configuration)
+	logger.info(habitat_config)
+
+	n = 0
+
+	step = len(agent.environment.get_env().episodes)//100
+	print('step', step)
+	episodes_per_train_scene  = len(agent.environment.get_env().episodes)
+	print(len(agent.environment.get_env().episodes))
+	for i in range(num_iterations):
+		bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+		bar.start()	
+		 	#agent.reset() # ??
+
+		num_episodes = len(agent.environment.get_env().episodes)
+		sampled_episodes = random.sample(range(0, num_episodes), num_episodes)
+		for e, episode_id in enumerate(sampled_episodes):
+			#print(agent.environment.get_env()._current_episode_index)
+			agent.reset(episode_id)
+			if n < random_episodes_threshold:
+				training = False
+			elif not training:
+				logger.info('finish filling up replay buffer and start training')
+				training = True
+			if n%align_model_threshold == 1 and training:
+				logger.info('align the models')
+				agent.align_target_model()
+			for timestep in range(horizon-1):
+				action = agent.sample_action(training=training)
+				agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
+			n += 1
+			#agent.environment.get_env().episode_iterator = iterator
+			#agent.environment.get_env().close()
+			#agent.environment.get_env().reconfigure(habitat_config)
+			#agent.environment = HabitatWrapper(configuration, habitat_config)
+			bar.update(e/step+1)	
+				
+			if (n+1)%2000 == 0:
+				logger.info('saving checkpoint after episodes %i'%n)
+				agent.save_weights(final_output_dir + '/checkpoints/cp-episode{}.ckpt'.format(n))
+				validate(i, logger, configuration, habitat_config, agent)
+
+		bar.finish()
+		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations))
+		logger.info('saving checkpoint %i'%i)
+		agent.save_weights(final_output_dir + '/checkpoints/cp-{}.ckpt'.format(i))
+		validate(i, logger, configuration, habitat_config, agent)
+		
+
 	
-	#logger.info('Rewards per Episode Achieved by Random Policy: ')
-	#validate(i, logger, configuration, habitat_config, agent, random_policy=True)
-	
-	logger.info('Rewards per Episode Achieved by Learned Policy: ')
-	#visualize_trajectory([12], configuration, habitat_config, agent, random_policy=True) 
-	validate(i, logger, configuration, habitat_config, agent, random_policy=False)	

@@ -57,7 +57,7 @@ class RL_Agent(tf.keras.Model):
 		#self.environment.get_env()._current_episode = self.environment.get_env().episodes[episode_idx]
 
 		if episode_index is not None:
-			self.environment._current_episode_index = episode_index
+			self.environment.get_env()._current_episode_index = episode_index
 
 		self.curr_observations = self.environment.reset()
 		self.update_scene_memory(self.curr_observations, timestep=[0.0]) 
@@ -73,9 +73,9 @@ class RL_Agent(tf.keras.Model):
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1))
 			#pdb.set_trace()
 			action = tf.keras.backend.get_value(tf.keras.backend.argmax(q_vals[:,0,:], 1)[0])
-			#print(action)
+			print(action)
 			return action
-		elif np.random.rand() > self.epsilon: 
+		elif training and np.random.rand() > self.epsilon: 
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
 			#print(q_vals)
 			action = tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
@@ -120,6 +120,7 @@ class RL_Agent(tf.keras.Model):
 				self.reward_list = []
 
 		self.curr_observations = new_observations
+		#print('current reward: ', reward)
 		return reward, copy.deepcopy(self.curr_observations)
 
 	def store_observations(self, timestep, curr_observations, action, reward, next_observations, done):

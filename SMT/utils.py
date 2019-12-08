@@ -126,7 +126,7 @@ def validate(training_iterations, logger, configs, habitat_config, agent, random
 		#print("EPISODE ", e)
 		episode_reward = 0
 		
-		agent.reset(0) #reset the environment, sets the episode-index to e
+		agent.reset(e) #reset the environment, sets the episode-index to e
 
 		for timestep in range(horizon-1):
 			if random_policy:
@@ -135,6 +135,7 @@ def validate(training_iterations, logger, configs, habitat_config, agent, random
 				action = agent.sample_action(evaluating=True)
 			#print(action)
 			curr_reward, _ = agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)    
+			#print('reward: ', curr_reward)
 			episode_reward += curr_reward
 			#print(timestep)
 		sum_reward += episode_reward 
