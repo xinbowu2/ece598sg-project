@@ -101,7 +101,7 @@ if __name__ == '__main__':
 			#agent.environment.get_env().episodes = random.shuffle(agent.environment.get_env().episodes)
 
 		for e in range(episodes_per_train_scene):
-			agent.environment.get_env()._current_episode_index = random.randint(0, 10)
+			agent.environment.get_env()._current_episode_index = random.randint(0, len(agent.environment.get_env().episodes))
 			#print(agent.environment.get_env()._current_episode_index)
 			agent.reset()
 			if n < random_episodes_threshold:

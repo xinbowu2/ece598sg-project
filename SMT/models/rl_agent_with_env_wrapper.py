@@ -15,6 +15,7 @@ class RL_Agent(tf.keras.Model):
 		super(RL_Agent, self).__init__()
 		
 		self.action_size = num_actions
+		#print(num_actions)
 		self.epsilon = epsilon #epsilon-greedy
 			
 		self.batch_size = batch_size
