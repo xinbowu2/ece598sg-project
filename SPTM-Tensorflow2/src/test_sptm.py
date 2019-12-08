@@ -121,6 +121,6 @@ if __name__ == '__main__':
 	assert len(images) == len(actions)+1 == len(positions), 'Length of inputs not the same'
 
 	# test_action_predictor(images, actions)
-	visualize_action_predictor(50, 51, images, actions)
+	visualize_action_prediction(50, 51, images, actions)
 
 
