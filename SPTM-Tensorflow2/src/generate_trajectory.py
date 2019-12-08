@@ -5,7 +5,7 @@ import numpy as np
 FORWARD_KEY="w"
 LEFT_KEY="a"
 RIGHT_KEY="d"
-FINISH="f"
+FINISH_KEY="f"
 
 
 def transform_rgb_bgr(image):
@@ -39,12 +39,16 @@ def example():
 	
 	count_steps = 0
 	while not env.episode_over:
-		try:
-			action=int(input("Enter the action ... "))
-		except:
-			print('Invalid action')
-			continue
-		if action > 3:
+		input_text = input("Enter the action ... ")
+		if input_text == FORWARD_KEY:
+			action = 0
+		elif input_text == LEFT_KEY:
+			action = 1
+		elif input_text == RIGHT_KEY:
+			action = 2
+		elif input_text == FINISH_KEY:
+			action = 3
+		else:
 			print('Invalid action')
 			continue
 		action_list.append(action)
