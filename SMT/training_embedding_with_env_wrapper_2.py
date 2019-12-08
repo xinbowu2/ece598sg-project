@@ -82,8 +82,8 @@ if __name__ == '__main__':
 	random_episodes_threshold = configuration.TASK.RANDOM_EPISODES_THRESHOLD
 	align_model_threshold = configuration.TASK.ALIGH_MODEL_THRESHOLD
 	
-	print(configuration)
-	print(habitat_config)
+	logger.info(configuration)
+	logger.info(habitat_config)
 
 	n = 0
 
@@ -103,14 +103,14 @@ if __name__ == '__main__':
 		for e in range(episodes_per_train_scene):
 			agent.environment.get_env()._current_episode_index = random.randint(0, len(agent.environment.get_env().episodes))
 			#print(agent.environment.get_env()._current_episode_index)
-			agent.reset()
+			agent.reset(0)
 			if n < random_episodes_threshold:
 				training = False
 			elif not training:
-				print('finish filling up replay buffer and start training')
+				logger.info('finish filling up replay buffer and start training')
 				training = True
 			if n%align_model_threshold == 1 and training:
-				#print('align the models')
+				logger.info('align the models')
 				agent.align_target_model()
 			for timestep in range(horizon-1):
 				action = agent.sample_action(training=training)
