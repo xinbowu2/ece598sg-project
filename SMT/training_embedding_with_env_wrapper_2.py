@@ -16,7 +16,7 @@ import config
 from config import update_config
 from config import configuration
 from dataset import HabitatWrapper  
-from utils import create_logger, validate
+from utils import create_logger, validate, validate_one_episode
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Train segmentation network')
@@ -40,6 +40,7 @@ if __name__ == '__main__':
 	horizon = configuration.TASK.HORIZON
 	batch_size = configuration.TRAIN.BATCH_SIZE
 	num_iterations = configuration.TRAIN.NUM_ITERATIONS
+	train_episode_id = 21
 	#step =  num_iterations//100
 
 	train_scene_list = os.listdir('./data/datasets/pointnav/gibson/v1/train_mini/content/')
@@ -103,7 +104,7 @@ if __name__ == '__main__':
 		for e in range(episodes_per_train_scene):
 			agent.environment.get_env()._current_episode_index = random.randint(0, len(agent.environment.get_env().episodes))
 			#print(agent.environment.get_env()._current_episode_index)
-			agent.reset(0)
+			agent.reset(train_episode_id)
 			if n < random_episodes_threshold:
 				training = False
 			elif not training:
@@ -128,13 +129,13 @@ if __name__ == '__main__':
 			if (n+1)%200 == 0:
 				logger.info('saving checkpoint after episodes %i'%n)
 				agent.save_weights(final_output_dir + '/checkpoints/cp-episode{}.ckpt'.format(n))
-				validate(i, logger, configuration, habitat_config, agent)
+				validate_one_episode(i, logger, configuration, habitat_config, agent, validate_episode=train_episode_id)
 
 		bar.finish()
 		logger.info('Finished iteration [{}/{}] and start validation.'.format(i, num_iterations))
 		logger.info('saving checkpoint %i'%i)
 		agent.save_weights(final_output_dir + '/checkpoints/cp-{}.ckpt'.format(i))
-		validate(i, logger, configuration, habitat_config, agent)
+		validate_one_episode(i, logger, configuration, habitat_config, agent, validate_episode=train_episode_id)
 		
 
 	

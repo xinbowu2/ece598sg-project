@@ -153,3 +153,61 @@ def validate(training_iterations, logger, configs, habitat_config, agent, random
 	bar.finish()
 		
 	logger.info('Validation reward for %i training iterations: %f' % (training_iterations, sum_reward/num_episodes))
+
+def validate_one_episode(training_iterations, logger, configs, habitat_config, agent, validate_episode=0, random_policy=False):
+    batch_size = configs.TRAIN.BATCH_SIZE
+    horizon = configs.TEST.HORIZON
+    horizon_to_resume = habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS
+    habitat_config.defrost()
+    habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon-1
+    habitat_config.freeze()
+    #environment_to_resume = agent.environment.get_env()
+    agent.environment.get_env().close()
+    agent.environment = HabitatWrapper(configs, habitat_config)
+    
+    num_episodes = len(agent.environment.get_env().episodes)
+    num_episodes = 1
+    sum_reward = 0
+    #step = num_episodes//100
+
+    bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+    bar.start()
+    #habitat_config.defrost()
+    #habitat_config.DATASET.DATA_PATH = '/data/datasets/pointnav/gibson/v1/val_mini/val_mini.json.gz'
+    #habitat_config.freeze()
+    #agent.environment.get_env().reconfigure(habitat_config)
+    
+    #print(num_episodes)
+    for e in range(0, num_episodes):
+        # Reset the enviroment
+        #print("EPISODE ", e)
+        episode_reward = 0
+        
+        agent.reset(validate_episode) #reset the environment, sets the episode-index to e
+
+        for timestep in range(horizon-1):
+            if random_policy:
+                action = random.randint(0, agent.action_size-1)             
+            else:
+                action = agent.sample_action(evaluating=True)
+            #print(action)
+            curr_reward, _ = agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)    
+            #print('reward: ', curr_reward)
+            episode_reward += curr_reward
+            #print(timestep)
+        sum_reward += episode_reward 
+        
+        
+        bar.update(10*e + 1)
+        
+        #agent.environment.get_env().close()
+        #agent.environment.get_env()._current_episode_index = 0
+    agent.environment.get_env().close()
+    habitat_config.defrost()
+    habitat_config.ENVIRONMENT.MAX_EPISODE_STEPS = horizon_to_resume
+    habitat_config.freeze()
+    agent.environment = HabitatWrapper(configs, habitat_config)
+    bar.finish()
+        
+    logger.info('Validation reward for %i training iterations: %f' % (training_iterations, sum_reward/num_episodes))
+

@@ -50,8 +50,8 @@ if __name__ == '__main__':
 	logger, final_output_dir, tb_log_dir = create_logger(
         configuration, args.cfg, 'train')
 
-	logger.info('TESTING FOR GPU', tf.test.is_gpu_available())
-	
+	logger.info('TESTING FOR GPU: ', tf.test.is_gpu_available())
+
 	habitat_config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
 	habitat_config.defrost()  
 	habitat_config.DATASET.SPLIT = 'train_mini'
