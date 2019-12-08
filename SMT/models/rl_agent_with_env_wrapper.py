@@ -120,7 +120,7 @@ class RL_Agent(tf.keras.Model):
 				self.reward_list = []
 
 		self.curr_observations = new_observations
-		return [reward, copy.deepcopy(self.curr_observations)]
+		return reward, copy.deepcopy(self.curr_observations)
 
 	def store_observations(self, timestep, curr_observations, action, reward, next_observations, done):
 		self.experience_replay.append((timestep, curr_observations, action, reward, next_observations, done))
