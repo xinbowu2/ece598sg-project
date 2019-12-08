@@ -24,11 +24,14 @@ def test_action_predictor(images, actions):
 			previous_x = images[0]
 		current_x = images[index]
 		future_x = images[index + 1]
-
 		batch_x.append(np.concatenate((previous_x, current_x, future_x), axis=2))
 		batch_y.append(actions[index])
-		if len(batch) == len(images) or len(batch) == 64:
-			print(model.test_on_batch(x, y, sample_weight=None, reset_metrics=False))
+		if index == len(images) - 2:
+			print('HELLO')
+			batch_x = tf.stack(batch_x, axis=0)
+			batch_y = tf.stack(batch_y, axis=0)
+			pdb.set_trace()
+			print(model.evaluate(batch_x, batch_y, batch_size = len(batch_x)))
 			batch_x = []
 			batch_y = []
 
@@ -40,12 +43,11 @@ if __name__ == '__main__':
 	image_paths = []
 	for im_path in glob.glob(trajectory_dir + "/images/*.png"):
 		image_paths.append(im_path)
-	image_paths.sort()
-	images = [mpimg.imread(x) for x in image_paths]
-
-	actions = np.load(trajectory_dir + '/actions.npy', allow_pickle=True)
-	positions = np.load(trajectory_dir + '/positions.npy', allow_pickle=True)
-
+	image_paths.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
+	print(image_paths)
+	images = [center_crop_resize(plt.imread(x)[:,:,:3], 256) for x in image_paths][:-1]
+	actions = np.load(trajectory_dir + '/actions.npy', allow_pickle=True)[:-1]
+	positions = np.load(trajectory_dir + '/positions.npy', allow_pickle=True)[:-1]
 	assert len(images) == len(actions)+1 == len(positions), 'Length of inputs not the same'
 
 	test_action_predictor(images, actions)

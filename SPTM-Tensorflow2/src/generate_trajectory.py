@@ -26,23 +26,34 @@ def example():
 	print("Environment creation successful")
 	observations = env.reset()
 	position_list.append(env.sim.get_agent_state().position)
-	plt.imshow(observations["rgb"])
+	fig = plt.figure(frameon=False)
+	ax = plt.Axes(fig, [0., 0., 1., 1.])
+	ax.set_axis_off()
+	fig.add_axes(ax)
+	ax.imshow(observations["rgb"])
 	plt.show(block=False)
-	plt.savefig(trajectory_directory+'images/'+str(0)+'.png')
+	fig.savefig(trajectory_directory+'images/'+str(0)+'.png')
 	#cv2.imshow("RGB", transform_rgb_bgr(observations["rgb"]))
 
 	print("Agent stepping around inside environment.")
 	
 	count_steps = 0
 	while not env.episode_over:
-		action=int(input("Enter the action ... "))
+		try:
+			action=int(input("Enter the action ... "))
+		except:
+			print('Invalid action')
+			continue
+		if action > 3:
+			print('Invalid action')
+			continue
 		action_list.append(action)
 		observations = env.step(action)
 		position_list.append(env.sim.get_agent_state().position)
 		count_steps += 1
-		plt.imshow(observations["rgb"])
+		ax.imshow(observations["rgb"])
 		plt.show(block=False)
-		plt.savefig(trajectory_directory+'/images/'+str(count_steps)+'.png')
+		fig.savefig(trajectory_directory+'/images/'+str(count_steps)+'.png')
 		#cv2.imshow("RGB", transform_rgb_bgr(observations["rgb"]))
 	np.array(action_list).dump(open(trajectory_directory+'actions.npy', 'wb'))
 	np.array(position_list).dump(open(trajectory_directory+'positions.npy', 'wb'))
