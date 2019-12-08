@@ -12,6 +12,7 @@
 !*.pbs
 !*.py
 !*.md
+!*.png
 !LICENSE
 !CMakeLists.txt
 !.gitignore
