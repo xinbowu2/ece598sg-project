@@ -61,12 +61,13 @@ def visualize_action_prediction(index1, index2, images, actions):
 	prediction = output.argmax()
 	
 	action = actions[index1]
-	fig = plt.figure(figsize=(75,75))
-	sub = fig.add_subplot(1,2,1)
-	sub.imshow(current_x, interpolation='nearest')
-	sub = fig.add_subplot(1,2,2)
-	sub.imshow(future_x, interpolation='nearest')
-	fig.suptitle('Prediction: %s (%f) Real Action: %s' % (action_mapping[prediction], output[prediction], action_mapping[action]), fontsize=12)
+	fig, ax = plt.subplots(1,2)
+	ax[0].set_title('Current')
+	ax[0].imshow(current_x, interpolation='nearest')
+	ax[1].set_title('Future')
+	ax[1].imshow(future_x, interpolation='nearest')
+	[axi.set_axis_off() for axi in ax.ravel()]
+	fig.suptitle('Prediction: %s (%f)\nReal Action: %s' % (action_mapping[prediction], output[prediction], action_mapping[action]), fontsize=12)
 	plt.show()
 	fig.savefig('action_prediction.png')
 
@@ -97,13 +98,24 @@ def visualize_edge_prediction(index1, index2, images, positions):
 	plt.show()
 	fig.savefig('edge_prediction_trajectory.png')
 
-	fig = plt.figure(figsize=(75,75))
-	sub = fig.add_subplot(1,2,1)
-	sub.set_title('Start')
-	sub.imshow(images[index1], interpolation='nearest')
-	sub = fig.add_subplot(1,2,2)
-	sub.set_title('End')
-	sub.imshow(images[index2], interpolation='nearest')
+	current_x = images[index1]
+	future_x = images[index2]
+	sample = np.concatenate((current_x, future_x), axis=2)
+	output = edge_predictor.predict(np.array([sample]))[0]
+	prediction = output.argmax()
+	
+	if prediction == 1:
+		prediction_str = 'Close'
+	else:
+		prediction_str = 'Far'
+	
+	fig, ax = plt.subplots(1,2)
+	fig.suptitle('Prediction: %s (%f)' % (prediction_str, output[prediction]))
+	ax[0].set_title('Start')
+	ax[0].imshow(images[index1], interpolation='nearest')
+	ax[1].set_title('End')
+	ax[1].imshow(images[index2], interpolation='nearest')
+	[axi.set_axis_off() for axi in ax.ravel()]
 	# fig.suptitle('Distance: ' + str(distance(positions[index1], positions[index2])), fontsize=12)
 	plt.show()
 	fig.savefig('edge_prediction_images.png')
@@ -136,6 +148,6 @@ if __name__ == '__main__':
 	# print(avg_dist(positions))
 
 	#test_action_predictor(images, actions)
-	visualize_action_prediction(0, 1, images, actions)
+	#visualize_action_prediction(0, 1, images, actions)
 	# test_edge_predictor(images, actions, positions)
-	#visualize_edge_prediction(100, 105, images, positions)
+	visualize_edge_prediction(100, 105, images, positions)
