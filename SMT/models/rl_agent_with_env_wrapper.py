@@ -39,15 +39,19 @@ class RL_Agent(tf.keras.Model):
 		self.gamma = gamma
 
 		self.curr_observations = None
+		
+		self.trace_model()
+		self.align_target_model()
 		#self.policy_network.compile(loss='mse', optimizer=self.optimizer)
 	
 	def trace_model(self):
 		observations = self.environment.reset()
 		self.update_scene_memory(observations, timestep=[0.0])
-		q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1))
+		self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1))
+		self.target_policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1))
 		#self.policy_network.build((2,10,128))
-		self.policy_network.summary()
-		self.scene_memory.summary()
+		#self.policy_network.summary()
+		#self.scene_memory.summary()
 		self.reset()
 		
 
