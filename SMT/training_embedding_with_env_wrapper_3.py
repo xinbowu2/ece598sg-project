@@ -40,6 +40,7 @@ if __name__ == '__main__':
 	horizon = configuration.TASK.HORIZON
 	batch_size = configuration.TRAIN.BATCH_SIZE
 	num_iterations = configuration.TRAIN.NUM_ITERATIONS
+	validate_save_freq = configuration.TRAIN.VALIDATE_SAVE_FREQ
 	#step =  num_iterations//100
 	#episilon = 0.4	
 
@@ -113,7 +114,9 @@ if __name__ == '__main__':
 				agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
 		
 			n += 1
-			if training:
+			if n%10 == 0:
+				print(n)
+			if training and n%align_model_threshold == 0:
 				agent.align_target_model()
 			#agent.environment.get_env().episode_iterator = iterator
 			#agent.environment.get_env().close()
@@ -121,7 +124,7 @@ if __name__ == '__main__':
 			#agent.environment = HabitatWrapper(configuration, habitat_config)
 			bar.update(e/step+1)	
 				
-			if (n+1)%300 == 0 and training:
+			if (n+1)%validate_save_freq == 0 and training:
 				logger.info('saving checkpoint after episodes %i'%n)
 				agent.save_weights(final_output_dir + '/checkpoints/cp-episode{}.ckpt'.format(n))
 				validate(i, logger, configuration, habitat_config, agent)
