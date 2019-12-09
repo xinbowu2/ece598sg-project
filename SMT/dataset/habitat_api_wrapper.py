@@ -20,6 +20,7 @@ class HabitatWrapper:
     self.env = habitat.Env(config=habitat_config)
 
     self.observations = None
+    self.prev_x, self.prev_y = None, None
     self.curr_x, self.curr_y = None, None
     self.current_action = None
     self.prev_action = None
@@ -68,6 +69,7 @@ class HabitatWrapper:
       if self.current_action != None:
         self.prev_action = self.current_action
         self.observations = self.process_observation(self.env.step(self.current_action))
+        self.prev_x, self.prev_y = self.curr_x, self.curr_y
         self.curr_x, _, self.curr_y = self.env.sim.get_agent_state().position
         #print('in advance action for position:', self.curr_x, self.curr_y)
         self.is_episode_finished = self.env.episode_over
@@ -85,6 +87,12 @@ class HabitatWrapper:
     if self.prev_action == 0:
       return 5.0
     '''
+
+    collision_reward = 0.0
+
+    if [self.curr_x, self.curr_y] == [self.prev_x, self.prev_y] and self.prev_action = 0:
+      collision_reward = -1.0
+
     curr_cell_pos = [self.last_cell_x, self.last_cell_y]
 
     # calculate displacement from last cell position
@@ -103,11 +111,15 @@ class HabitatWrapper:
     if curr_cell_pos == [self.last_cell_x, self.last_cell_y] or curr_cell_pos in self.visited_cells:
       self.last_cell_x = curr_cell_pos[0]
       self.last_cell_y = curr_cell_pos[1]
-      return 0.0
+      return 0.0 + collision_reward
 
     # update new cell information
     self.visited_cells.append(curr_cell_pos)
     self.last_cell_x = curr_cell_pos[0]
     self.last_cell_y = curr_cell_pos[1]
 
-    return self.reward_rate
+    return self.reward_rate + collision_reward
+
+
+
+
