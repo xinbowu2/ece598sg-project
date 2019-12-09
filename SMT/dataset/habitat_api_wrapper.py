@@ -90,7 +90,7 @@ class HabitatWrapper:
 
     collision_reward = 0.0
 
-    if [self.curr_x, self.curr_y] == [self.prev_x, self.prev_y] and self.prev_action = 0:
+    if [self.curr_x, self.curr_y] == [self.prev_x, self.prev_y] and self.prev_action == 0:
       collision_reward = -1.0
 
     curr_cell_pos = [self.last_cell_x, self.last_cell_y]

@@ -30,5 +30,5 @@ class AttentionPolicyNet(tf.keras.Model):
 def point_wise_feed_forward_network(dff, out_dim):
 	return tf.keras.Sequential([
 	  tf.keras.layers.Dense(dff, activation='relu'),  # (batch_size, seq_len, dff)
-	  tf.keras.layers.Dense(out_dim, activation='relu')  # (batch_size, seq_len, d_model)
+	  tf.keras.layers.Dense(out_dim)  # (batch_size, seq_len, d_model)
 	])

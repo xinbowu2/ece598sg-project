@@ -92,7 +92,7 @@ if __name__ == '__main__':
 	
 	#validate_one_episode(i, logger, configuration, habitat_config, agent, random_policy=True, validate_episode=21)
 	logger.info('Rewards per Episode Achieved by Learned Policy: ')
-	visualize_trajectory([21], configuration, habitat_config, agent, random_policy=False) 
-	#validate(i, logger, configuration, habitat_config, agent, random_policy=False)	
+	#visualize_trajectory([21], configuration, habitat_config, agent, random_policy=False) 
+	validate(i, logger, configuration, habitat_config, agent, random_policy=False)	
 
-	validate_one_episode(i, logger, configuration, habitat_config, agent, random_policy=False, validate_episode=21)
+	#validate_one_episode(i, logger, configuration, habitat_config, agent, random_policy=False, validate_episode=21)

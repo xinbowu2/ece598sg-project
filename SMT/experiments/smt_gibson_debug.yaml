@@ -3,14 +3,14 @@ CUDNN:
   DETERMINISTIC: false
   ENABLED: true
 GPUS: (0,1)
-OUTPUT_DIR: 'output_test_embedding_100h_200init_0.6e_16pm_tmp'
-LOG_DIR: 'log_test_embedding_100h_200init_0.6e_16pm_tmp'
+OUTPUT_DIR: 'output_test_embedding_100h_200init_0.6e_16pm_col_tmp'
+LOG_DIR: 'log_test_embedding_100h_200init_0.6e_16pm_col_tmp'
 WORKERS: 4
 PRINT_FREQ: 20
 
 MODEL: 
   NAME: 'smt'
-  CHECKPOINT: 'cp-episode1999.ckpt'
+  CHECKPOINT: 'cp-episode349.ckpt'
 
 DATASET:
   DATASET: 'gibson'
