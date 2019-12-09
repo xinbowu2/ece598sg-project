@@ -20,7 +20,7 @@ DATASET:
 
 TASK:
   NAME: 'coverage'
-  MODUALITIES: ['rgb', 'prev_action']
+  MODUALITIES: ['rgb', 'pose', prev_action']
   CELL_HEIGHT: 0.5
   CELL_WIDTH: 0.5
   REWARD_RATE: 5.0

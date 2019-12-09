@@ -20,9 +20,11 @@ class HabitatWrapper:
     self.env = habitat.Env(config=habitat_config)
 
     self.observations = None
+    self.curr_x, self.curr_y = None, None
     self.current_action = None
     self.prev_action = None
     self.is_episode_finished = False
+
 
     
   def process_observation(self, observations):
@@ -35,6 +37,7 @@ class HabitatWrapper:
     observations_dict['prev_action'] = np.array( [0.0, 0.0, 0.0], dtype=np.float32)
     if self.prev_action:
       observations_dict['prev_action'][self.prev_action] += 1.0
+    observations_dict['pose'] = np.array([self.curr_x, self.curr_y], dtype=np.float32)
     return observations_dict
 
   def reset(self):

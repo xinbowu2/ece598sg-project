@@ -238,7 +238,7 @@ class RL_Agent(tf.keras.Model):
 			loss = self.loss(target, q_vals)
 			#tape.watch(state_batch)
 		trainable_variables = self.policy_network.trainable_variables
-		trainable_variables.extend(self.scene_memory.trainable_variables)
+		#trainable_variables.extend(self.scene_memory.trainable_variables)
 		# freeze embedding networks when training the policy network
 		gradients = tape.gradient(loss, trainable_variables)
 		#pdb.set_trace()

@@ -114,8 +114,8 @@ if __name__ == '__main__':
 		
 			n += 1
 			if training:
-                                #logger.info('align the models')
-                                agent.align_target_model()
+                #logger.info('align the models')
+                agent.align_target_model()
 			#agent.environment.get_env().episode_iterator = iterator
 			#agent.environment.get_env().close()
 			#agent.environment.get_env().reconfigure(habitat_config)
