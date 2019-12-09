@@ -75,7 +75,7 @@ def visualize_trajectory(episode_indices, configs, habitat_config, agent, random
 			if random_policy:
 				action = random.randint(0, agent.action_size-1)				
 			else:
-				action = agent.sample_action(evaluating=True)
+				action, _, _ = agent.sample_action(evaluating=True)
 			logger.info(action)
 			reward, observations = agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)
 			episode_reward += reward    
@@ -133,7 +133,7 @@ def validate(training_iterations, logger, configs, habitat_config, agent, random
 			if random_policy:
 				action = random.randint(0, agent.action_size-1)				
 			else:
-				action = agent.sample_action(evaluating=True)
+				action, _, _  = agent.sample_action(evaluating=True)
 			logger.info(action)
 			curr_reward, _ = agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)    
 			#print('reward: ', curr_reward)
@@ -190,7 +190,7 @@ def validate_one_episode(training_iterations, logger, configs, habitat_config, a
             if random_policy:
                 action = random.randint(0, agent.action_size-1)             
             else:
-                action = agent.sample_action(evaluating=True)
+                action, _, _  = agent.sample_action(evaluating=True)
             #print(action)
             curr_reward, _ = agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)    
             #print('reward: ', curr_reward)
@@ -211,4 +211,3 @@ def validate_one_episode(training_iterations, logger, configs, habitat_config, a
     bar.finish()
         
     logger.info('Validation reward for %i training iterations: %f' % (training_iterations, sum_reward/num_episodes))
-

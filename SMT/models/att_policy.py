@@ -16,11 +16,14 @@ class AttentionPolicyNet(tf.keras.Model):
 
 		self.ffn = point_wise_feed_forward_network(d_model, num_classes) #??
 
-	def call(self, o, m, mask=None, training=False):
-		c = self.encoder(m, m, m, mask, training)
-		decoder_output = self.decoder(c, c, o, mask, training)
+	def call(self, o, m, mask=None, training=False, evaluating=False):
+		c, encoder_att_weights = self.encoder(m, m, m, mask, training, evaluating)
+		decoder_output, decoder_att_weights = self.decoder(c, c, o, mask, training, evaluating)
 		ffn_output = self.ffn(decoder_output)
 		#output = tf.keras.activations.softmax(ffn_output)
+		if evaluating:
+			return ffn_output, encoder_att_weights, decoder_att_weights
+			
 		return ffn_output
 
 	# def sample_action(self, o, m, mask, training):
