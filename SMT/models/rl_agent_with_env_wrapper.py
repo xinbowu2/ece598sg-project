@@ -12,7 +12,7 @@ import pdb
 
 class RL_Agent(tf.keras.Model):
 
-	def __init__(self, environment, optimizer, loss_function, batch_size, training_embedding=False, epsilon=0.1 ,gamma=0.95, num_actions=3, d_model=128):
+	def __init__(self, environment, optimizer, loss_function, batch_size, training_embedding=False, epsilon=0.6 ,gamma=0.95, num_actions=3, d_model=128):
 		super(RL_Agent, self).__init__()
 		
 		self.action_size = num_actions
@@ -45,7 +45,11 @@ class RL_Agent(tf.keras.Model):
 		observations = self.environment.reset()
 		self.update_scene_memory(observations, timestep=[0.0])
 		q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1))
+		#self.policy_network.build((2,10,128))
+		self.policy_network.summary()
+		self.scene_memory.summary()
 		self.reset()
+		
 
 	def update_scene_memory(self, observations, timestep):
 		#timestep = [0.0]
@@ -79,6 +83,7 @@ class RL_Agent(tf.keras.Model):
 			q_vals = self.policy_network(self.scene_memory.obs_embedding, tf.stack(self.scene_memory.memory, axis=1)) #shape is batch_size*1*num_actions
 			#print(q_vals)
 			action = tf.keras.backend.get_value(tf.random.categorical(q_vals[:,0,:], 1)[0][0])
+			#pdb.set_trace()
 			if action > self.action_size -1:
 				print('invalid action %i'%action)
 				return random.randint(0, self.action_size-1)
@@ -157,18 +162,24 @@ class RL_Agent(tf.keras.Model):
 			#only consider current embedding in the memory
 			q_vals = self.policy_network(embeddings, embeddings)[:,0,:]
 			target = copy.deepcopy(q_vals)			
-
+			#print('target shape after copy: ', target.shape)
+			#print('target after copy: ', target)
 			indices = tf.stack([tf.range(batch_size), action_batch], axis=1)
+			#print('indices shape: ', indices.shape)
+			#print('indices: ', indices)
 			t = self.target_policy_network(next_embeddings, next_embeddings)[:,0,:] #? what is shape of t? batch_size*actions
+			#print('t: ', t)
 			updates = reward_batch + self.gamma*tf.math.multiply(tf.math.reduce_max(t, axis=1), (1-done))
+			#print('updates: ', updates)
 			#print('target before scatter: ', target)			
 			target = tf.tensor_scatter_nd_update(target, indices, updates)
+			#print('target after update: ', target)
 			#print('target after scatter: ', target)
 			loss = self.loss(target, q_vals)
 			#tape.watch(state_batch)
 		trainable_variables = self.policy_network.trainable_variables
 		trainable_variables.extend(self.scene_memory.trainable_variables) 
-
+		
 		# freeze embedding networks when training the policy network
 		#print(loss)
 		'''
@@ -186,7 +197,8 @@ class RL_Agent(tf.keras.Model):
 		#print('mean gradients: ', tf.reduce_mean([tf.reduce_mean(gradient) for gradient in gradients]))
 		#pdb.set_trace()
 		#print(tf.reduce_sum(loss))
-
+		#pdb.set_trace()
+		
 	def update_model(self, time_step, batch_size):
 		with tf.GradientTape() as tape:
 			#print(batch_size)
@@ -226,6 +238,7 @@ class RL_Agent(tf.keras.Model):
 			loss = self.loss(target, q_vals)
 			#tape.watch(state_batch)
 		trainable_variables = self.policy_network.trainable_variables
+		trainable_variables.extend(self.scene_memory.trainable_variables)
 		# freeze embedding networks when training the policy network
 		gradients = tape.gradient(loss, trainable_variables)
 		#pdb.set_trace()

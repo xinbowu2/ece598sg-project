@@ -68,6 +68,7 @@ def visualize_trajectory(episode_indices, configs, habitat_config, agent, random
 		observations = agent.reset(idx) #reset the environment, sets the episode-index to e
 		ax.imshow(tf.transpose(observations["rgb"], perm=[1,2,0]))
 		#plt.show()
+		#pdb.set_trace()
 		plt.show(block=False)
 		for timestep in range(horizon-1):
 			input("Press any key to proceed: ")			
@@ -75,7 +76,7 @@ def visualize_trajectory(episode_indices, configs, habitat_config, agent, random
 				action = random.randint(0, agent.action_size-1)				
 			else:
 				action = agent.sample_action(evaluating=True)
-			print(action)
+			logger.info(action)
 			reward, observations = agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)
 			episode_reward += reward    
 			print(reward)
@@ -133,7 +134,7 @@ def validate(training_iterations, logger, configs, habitat_config, agent, random
 				action = random.randint(0, agent.action_size-1)				
 			else:
 				action = agent.sample_action(evaluating=True)
-			#print(action)
+			logger.info(action)
 			curr_reward, _ = agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)    
 			#print('reward: ', curr_reward)
 			episode_reward += curr_reward

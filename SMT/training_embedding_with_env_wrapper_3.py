@@ -41,6 +41,7 @@ if __name__ == '__main__':
 	batch_size = configuration.TRAIN.BATCH_SIZE
 	num_iterations = configuration.TRAIN.NUM_ITERATIONS
 	#step =  num_iterations//100
+	#episilon = 0.4	
 
 	train_scene_list = os.listdir('./data/datasets/pointnav/gibson/v1/train_mini/content/')
 	#train_scene_list =['']
@@ -106,8 +107,9 @@ if __name__ == '__main__':
 			elif not training:
 				logger.info('finish filling up replay buffer and start training')
 				training = True
-			if n%align_model_threshold == 1 and training:
-				logger.info('align the models')
+			#if n%align_model_threshold == 1 and training:
+			if training:
+				#logger.info('align the models')
 				agent.align_target_model()
 			for timestep in range(horizon-1):
 				action = agent.sample_action(training=training)
@@ -119,7 +121,7 @@ if __name__ == '__main__':
 			#agent.environment = HabitatWrapper(configuration, habitat_config)
 			bar.update(e/step+1)	
 				
-			if (n+1)%2000 == 0:
+			if (n+1)%300 == 0 and training:
 				logger.info('saving checkpoint after episodes %i'%n)
 				agent.save_weights(final_output_dir + '/checkpoints/cp-episode{}.ckpt'.format(n))
 				validate(i, logger, configuration, habitat_config, agent)
