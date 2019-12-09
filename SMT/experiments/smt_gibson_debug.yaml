@@ -24,6 +24,7 @@ TASK:
   CELL_HEIGHT: 0.5
   CELL_WIDTH: 0.5
   REWARD_RATE: 5.0
+  COLLISION_PENALTY: -1.0
   NUM_ACTIONS: 3
   ACTION_NAMES: ['move_forward', 'turn left', 'turn right']
   RANDOM_EPISODES_THRESHOLD: 200
