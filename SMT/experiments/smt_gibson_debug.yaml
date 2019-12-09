@@ -3,14 +3,14 @@ CUDNN:
   DETERMINISTIC: false
   ENABLED: true
 GPUS: (0,1)
-OUTPUT_DIR: 'output_test_embedding_100h_200init_0.6e_16pm_col_tmp'
-LOG_DIR: 'log_test_embedding_100h_200init_0.6e_16pm_col_tmp'
+OUTPUT_DIR: 'output_test_embedding_100h_200init_0.6e_16pm_col_tmp_2'
+LOG_DIR: 'log_test_embedding_100h_200init_0.6e_16pm_col_tmp_2'
 WORKERS: 4
 PRINT_FREQ: 20
 
 MODEL: 
   NAME: 'smt'
-  CHECKPOINT: 'cp-episode349.ckpt'
+  CHECKPOINT: 'cp-episode449.ckpt'
 
 DATASET:
   DATASET: 'gibson'
@@ -20,21 +20,21 @@ DATASET:
 
 TASK:
   NAME: 'coverage'
-  MODUALITIES: ['rgb', 'pose', prev_action']
-  CELL_HEIGHT: 0.5
-  CELL_WIDTH: 0.5
+  MODUALITIES: ['rgb', 'pose', 'prev_action']
+  CELL_HEIGHT: 1.0
+  CELL_WIDTH: 1.0
   REWARD_RATE: 5.0
-  COLLISION_PENALTY: -1.0
+  COLLISION_PENALTY_RATE: 0.0
   NUM_ACTIONS: 3
   ACTION_NAMES: ['move_forward', 'turn left', 'turn right']
   RANDOM_EPISODES_THRESHOLD: 200
-  ALIGH_MODEL_THRESHOLD: 5
+  ALIGH_MODEL_THRESHOLD: 100
   HORIZON: 100
 
 TRAIN:
   BATCH_SIZE: 64
   OPTIMIZER: 'adam'
-  LR: 5e-4
+  LR: 0.0005
   NUM_ITERATIONS: 100
   EPISODES_PER_SCENE: 20
   HORIZON: 100

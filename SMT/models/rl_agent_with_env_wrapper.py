@@ -168,6 +168,8 @@ class RL_Agent(tf.keras.Model):
 
 			#only consider current embedding in the memory
 			q_vals = self.policy_network(embeddings, embeddings)[:,0,:]
+			q_next_vals =  self.policy_network(next_embeddings, next_embeddings)[:,0,:]
+			next_actions = tf.keras.backend.argmax(q_next_vals, axis=-1)
 			target = copy.deepcopy(q_vals)			
 			#print('target shape after copy: ', target.shape)
 			#print('target after copy: ', target)
@@ -176,7 +178,12 @@ class RL_Agent(tf.keras.Model):
 			#print('indices: ', indices)
 			t = self.target_policy_network(next_embeddings, next_embeddings)[:,0,:] #? what is shape of t? batch_size*actions
 			#print('t: ', t)
-			updates = reward_batch + self.gamma*tf.math.multiply(tf.math.reduce_max(t, axis=1), (1-done))
+			cat_index = tf.concat([tf.expand_dims(tf.range(0, tf.shape(t)[0]),1), tf.expand_dims(tf.dtypes.cast(next_actions, dtype=tf.int32),1)], axis=1)
+			#tf.gather_nd(t, cat_index)
+			updates = reward_batch + self.gamma*tf.math.multiply(tf.gather_nd(t, cat_index), (1-done))
+			#updates = reward_batch + self.gamma*tf.math.multiply(tf.math.reduce_max(t, axis=1), (1-done))
+			#pdb.set_trace()
+			#updates = reward_batch + self.gamma*tf.math.multiply(t[next_actions], (1-done))
 			#print('updates: ', updates)
 			#print('target before scatter: ', target)			
 			target = tf.tensor_scatter_nd_update(target, indices, updates)

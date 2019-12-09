@@ -24,6 +24,7 @@ class HabitatWrapper:
     self.prev_x, self.prev_y = None, None
     self.curr_x, self.curr_y = None, None
     self.current_action = None
+    self.curr_action = None
     self.prev_action = None
     self.is_episode_finished = False
 
@@ -61,15 +62,16 @@ class HabitatWrapper:
 
   def set_action(self, action):
     if action in self.action_mapping.keys():
-      self.current_action = action
+      self.curr_action = action
     else:
       raise error('Invalid action: %s' % action)
 
   def advance_action(self, tics=1, update=True):
     if update:
-      if self.current_action != None:
-        self.prev_action = self.current_action
-        self.observations = self.process_observation(self.env.step(self.current_action))
+      if self.curr_action != None:
+        self.prev_action = self.curr_action
+        self.observations = self.process_observation(self.env.step(self.curr_action))
+        #self.prev_action = self.curr_action
         self.prev_x, self.prev_y = self.curr_x, self.curr_y
         self.curr_x, _, self.curr_y = self.env.sim.get_agent_state().position
         #print('in advance action for position:', self.curr_x, self.curr_y)
@@ -91,7 +93,7 @@ class HabitatWrapper:
 
     collision_penalty = 0.0
 
-    if [self.curr_x, self.curr_y] == [self.prev_x, self.prev_y] and self.prev_action == 0:
+    if [self.curr_x, self.curr_y] == [self.prev_x, self.prev_y] and self.curr_action == 0:
       collision_penalty = self.collision_penalty_rate
 
     curr_cell_pos = [self.last_cell_x, self.last_cell_y]

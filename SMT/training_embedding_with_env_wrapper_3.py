@@ -111,12 +111,16 @@ if __name__ == '__main__':
 			#if n%align_model_threshold == 1 and training:
 			for timestep in range(horizon-1):
 				action = agent.sample_action(training=training)
+				#print(action)
+				#if training:
+					#print('action after training: ', action)
 				agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
 		
 			n += 1
 			if n%10 == 0:
 				print(n)
 			if training and n%align_model_threshold == 0:
+				print('align models')
 				agent.align_target_model()
 			#agent.environment.get_env().episode_iterator = iterator
 			#agent.environment.get_env().close()

@@ -76,7 +76,7 @@ def visualize_trajectory(episode_indices, configs, habitat_config, agent, random
 				action = random.randint(0, agent.action_size-1)				
 			else:
 				action, _, _ = agent.sample_action(evaluating=True)
-			logger.info(action)
+			print(action)
 			reward, observations = agent.step(action, batch_size=None, timestep=timestep, training=False, evaluating=True)
 			episode_reward += reward    
 			print(reward)
@@ -87,9 +87,6 @@ def visualize_trajectory(episode_indices, configs, habitat_config, agent, random
 		sum_reward += episode_reward 
 		
 		
-		bar.update(10*e + 1)
-		
-		#agent.environment.get_env().close()
 		#agent.environment.get_env()._current_episode_index = 0
 
 	agent.environment.get_env().close()
