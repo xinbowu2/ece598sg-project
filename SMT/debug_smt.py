@@ -16,7 +16,7 @@ import config
 from config import update_config
 from config import configuration
 from dataset import HabitatWrapper  
-from utils import create_logger, validate, visualize_trajectory
+from utils import create_logger, validate, visualize_trajectory, validate_one_episode
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Train segmentation network')
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 	else:
 		raise error('%s is not supported' % configuration.LOSS.TYPE)
 
-	agent  = RL_Agent(environment, optimizer, loss_function, batch_size=batch_size, training_embedding=False, num_actions=configuration.TASK.NUM_ACTIONS)
+	agent  = RL_Agent(environment, optimizer, loss_function, batch_size=batch_size, training_embedding=True, num_actions=configuration.TASK.NUM_ACTIONS)
 	
 	if configuration.TRAIN.RESUME:
 		agent.trace_model()
@@ -93,4 +93,6 @@ if __name__ == '__main__':
 	
 	logger.info('Rewards per Episode Achieved by Learned Policy: ')
 	#visualize_trajectory([12], configuration, habitat_config, agent, random_policy=True) 
-	validate(i, logger, configuration, habitat_config, agent, random_policy=False)	
+	#validate(i, logger, configuration, habitat_config, agent, random_policy=False)	
+
+	validate_one_episode(i, logger, configuration, habitat_config, agent, random_policy=False, validate_episode=21)

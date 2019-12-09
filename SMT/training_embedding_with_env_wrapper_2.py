@@ -111,7 +111,7 @@ if __name__ == '__main__':
 				logger.info('finish filling up replay buffer and start training')
 				training = True
 			if n%align_model_threshold == 1 and training:
-				logger.info('align the models')
+				#logger.info('align the models')
 				agent.align_target_model()
 			for timestep in range(horizon-1):
 				action = agent.sample_action(training=training)
@@ -126,7 +126,7 @@ if __name__ == '__main__':
 			#agent.environment = HabitatWrapper(configuration, habitat_config)
 			bar.update(e/step+1)	
 				
-			if (n+1)%200 == 0:
+			if (n+1)%150 == 0:
 				logger.info('saving checkpoint after episodes %i'%n)
 				agent.save_weights(final_output_dir + '/checkpoints/cp-episode{}.ckpt'.format(n))
 				validate_one_episode(i, logger, configuration, habitat_config, agent, validate_episode=train_episode_id)

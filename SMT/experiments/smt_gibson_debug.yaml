@@ -10,7 +10,7 @@ PRINT_FREQ: 20
 
 MODEL: 
   NAME: 'smt'
-  CHECKPOINT: 'cp-episode399.ckpt'
+  CHECKPOINT: 'cp-episode1999.ckpt'
 
 DATASET:
   DATASET: 'gibson'
@@ -37,7 +37,7 @@ TRAIN:
   NUM_ITERATIONS: 100
   EPISODES_PER_SCENE: 20
   HORIZON: 100
-  RESUME: false
+  RESUME: true
 
 TEST:
   HORIZON: 100
