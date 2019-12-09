@@ -150,4 +150,4 @@ if __name__ == '__main__':
 	#test_action_predictor(images, actions)
 	#visualize_action_prediction(0, 1, images, actions)
 	# test_edge_predictor(images, actions, positions)
-	visualize_edge_prediction(100, 105, images, positions)
+	visualize_edge_prediction(50, 100, images, positions)
