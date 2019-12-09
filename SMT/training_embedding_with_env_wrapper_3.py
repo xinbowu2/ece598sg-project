@@ -108,13 +108,14 @@ if __name__ == '__main__':
 				logger.info('finish filling up replay buffer and start training')
 				training = True
 			#if n%align_model_threshold == 1 and training:
-			if training:
-				#logger.info('align the models')
-				agent.align_target_model()
 			for timestep in range(horizon-1):
 				action = agent.sample_action(training=training)
 				agent.step(action, timestep=timestep, batch_size=batch_size, training=training)  
+		
 			n += 1
+			if training:
+                                #logger.info('align the models')
+                                agent.align_target_model()
 			#agent.environment.get_env().episode_iterator = iterator
 			#agent.environment.get_env().close()
 			#agent.environment.get_env().reconfigure(habitat_config)

@@ -20,10 +20,10 @@ class SceneMemory(tf.keras.Model):
 			self.embedding_nets['rgb'] = ModifiedResNet18(modality_dim['rgb'], reduce_factor)
 
 		if 'pose' in modalities:
-			self.embedding_nets['pose'] = tf.keras.layers.Dense(modality_dim['pose'], activation='relu')
+			self.embedding_nets['pose'] = tf.keras.layers.Dense(modality_dim['pose'])
 
 		if 'prev_action' in modalities:
-			self.embedding_nets['prev_action'] = tf.keras.layers.Dense(modality_dim['prev_action'], activation='relu')
+			self.embedding_nets['prev_action'] = tf.keras.layers.Dense(modality_dim['prev_action'])
 
 
 		self.fc = tf.keras.layers.Dense(observation_dim, activation='linear')
