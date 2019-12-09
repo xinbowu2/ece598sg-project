@@ -4,7 +4,7 @@ import pdb
 import copy
 
 class SceneMemory(tf.keras.Model):
-	def __init__(self, modalities=['rgb', 'pose', 'prev_action'], modality_dim={'rgb':64, 'pose': 64, 'prev_action':64}, downsampling_size=(64,64), 
+	def __init__(self, modalities=['rgb', 'pose', 'prev_action'], modality_dim={'rgb':64, 'pose': 16, 'prev_action':16}, downsampling_size=(64,64), 
 	  reduce_factor=4, observation_dim=128, pose_lambda=5.0):
 		super(SceneMemory, self).__init__()
 		self.downsampling_size = downsampling_size
@@ -38,10 +38,10 @@ class SceneMemory(tf.keras.Model):
 	def forward_pass(self, observations, timestep, training=False):
 		observations = copy.deepcopy(observations) 
 		for modality in self.modalities:
-			#if len(observations[modality].shape) == 3 or len(observations[modality].shape) == 1:
+			if len(observations[modality].shape) == 3 or len(observations[modality].shape) == 1:
+				observations[modality] = tf.expand_dims(observations[modality], 0)
 			if modality == 'pose':
 				observations[modality] /= self.pose_lambda
-			observations[modality] = tf.expand_dims(observations[modality], 0)
 		#print(observations['rgb'].shape)
 		#observations['rgb'] = tf.image.resize(observations['rgb'],
 		#size=self.downsampling_size)
@@ -94,5 +94,5 @@ class SceneMemory(tf.keras.Model):
 				'''
 				embeddings.append(self.embedding_nets[modality](observations[modality]))
 		#pdb.set_trace()
-
+		#pdb.set_trace()
 		return self.fc(tf.concat(embeddings, axis=1))

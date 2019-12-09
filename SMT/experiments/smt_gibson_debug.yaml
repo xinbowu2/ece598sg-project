@@ -3,8 +3,8 @@ CUDNN:
   DETERMINISTIC: false
   ENABLED: true
 GPUS: (0,1)
-OUTPUT_DIR: 'output_test_embedding_200h_200init_0.6e'
-LOG_DIR: 'log_test_embedding_200h_200init_0.6e'
+OUTPUT_DIR: 'output_test_embedding_200h_1000init_0.6e_16pm'
+LOG_DIR: 'log_test_embedding_200h_1000init_0.6e_16pm'
 WORKERS: 4
 PRINT_FREQ: 20
 
@@ -26,7 +26,7 @@ TASK:
   REWARD_RATE: 5.0
   NUM_ACTIONS: 3
   ACTION_NAMES: ['move_forward', 'turn left', 'turn right']
-  RANDOM_EPISODES_THRESHOLD: 200
+  RANDOM_EPISODES_THRESHOLD: 1000
   ALIGH_MODEL_THRESHOLD: 0
   HORIZON: 200
 
