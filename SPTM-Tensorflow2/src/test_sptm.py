@@ -29,7 +29,9 @@ action_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=actio
 
 edge_predictor = SiameseResnet(2)
 edge_predictor.build((32, 256, 256, 6))
+edge_predictor.load_weights('../experiments/edge/default_experiment/models/model.000350.h5')
 edge_predictor.load_weights('edge_model.h5')
+#edge_predictor.load_weights('edge_model.h5')
 edge_adam = tf.keras.optimizers.Adam(lr=LEARNING_RATE, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 edge_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=edge_adam, metrics=['accuracy'])
 
@@ -149,5 +151,5 @@ if __name__ == '__main__':
 
 	#test_action_predictor(images, actions)
 	#visualize_action_prediction(0, 1, images, actions)
-	# test_edge_predictor(images, actions, positions)
+	#test_edge_predictor(images, actions, positions)
 	visualize_edge_prediction(50, 100, images, positions)
