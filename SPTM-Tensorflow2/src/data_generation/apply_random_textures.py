@@ -125,7 +125,7 @@ def main():
     generator_arguments = (textures, [], []) 
   texture_generator = generator_class(*generator_arguments)
   for index in xrange(number_of_maps):
-    print index
+    print(index)
     set_seed(args.mode)
     add_map_to_wad(wad, change_textures(wad.maps['MAP01'], texture_generator), index)
   wad.to_file(out_file)

@@ -25,7 +25,7 @@ class TrajectoryPlotter:
     for edge in self.edges:
       first_x, second_x, first_y, second_y = edge
       plt.plot([first_x - self.min_x, second_x - self.min_x], [first_y - self.min_y, second_y - self.min_y], 'r')
-    plt.axis([0, self.size_x, 0, self.size_y])
+    # plt.axis([0, self.size_x, 0, self.size_y])
     plt.xticks([])
     plt.yticks([])
     plt.savefig(self.save_path, bbox_inches='tight')

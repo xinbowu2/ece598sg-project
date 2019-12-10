@@ -23,20 +23,20 @@ def make_params_command(command_dict):
         params_command += 'export {k}={v} ; '.format(k=k,v=v)
     return params_command
 
-def make_eval_command(method, doom_env):
+def make_eval_command(method, habitat_env):
     if method == 'ours':
-        eval_command = "nohup python -u test_navigation_quantitative.py {doom_env} policy".format(doom_env=doom_env)
+        eval_command = "nohup python -u test_navigation_quantitative.py {habitat_env} policy".format(habitat_env=habitat_env)
     elif method == 'teach_and_repeat':
-        eval_command = "nohup python -u test_navigation_quantitative.py {doom_env} teach_and_repeat".format(doom_env=doom_env)
+        eval_command = "nohup python -u test_navigation_quantitative.py {habitat_env} teach_and_repeat".format(habitat_env=habitat_env)
     return eval_command
 
-def make_graph_command(method, doom_env):
-    graph_command = "nohup python -u build_graph.py {doom_env}".format(doom_env=doom_env)
+def make_graph_command(method, habitat_env):
+    graph_command = "nohup python -u build_graph.py {habitat_env}".format(habitat_env=habitat_env)
     return graph_command
 
-def make_command(method, doom_env, param_string='', exp_out_folder_prefix='eval'):
+def make_command(method, habitat_env, param_string='', exp_out_folder_prefix='eval'):
     param = parse_param_string(param_string)
-    param['EXPERIMENT_OUTPUT_FOLDER'] = exp_out_folder_prefix + '_' + method + '_' + doom_env
+    param['EXPERIMENT_OUTPUT_FOLDER'] = exp_out_folder_prefix + '_' + method + '_' + habitat_env
     exp_folder = os.path.join('../../experiments', param['EXPERIMENT_OUTPUT_FOLDER'])
     outfile = os.path.join(exp_folder, 'log.out')
     graph_outfile = os.path.join(exp_folder, 'graph_log.out')
@@ -46,8 +46,8 @@ def make_command(method, doom_env, param_string='', exp_out_folder_prefix='eval'
         os.makedirs(exp_folder)
         os.makedirs(os.path.join(exp_folder, 'evaluation/graph_shortcuts'))
     param_command = make_params_command(param)
-    eval_command =  make_eval_command(method, doom_env)
-    graph_command = make_graph_command(method, doom_env)
+    eval_command =  make_eval_command(method, habitat_env)
+    graph_command = make_graph_command(method, habitat_env)
     command = param_command + graph_command + ' > ' + graph_outfile + ' ; ' + eval_command + ' > ' + outfile
     with open(os.path.join(exp_folder, 'command.log'), 'w') as f:
         f.write(command)
@@ -65,20 +65,20 @@ def wait_for_free_slot(procs, max_num_procs):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run evaluation of goal-directed anvigation')
     parser.add_argument('--methods', metavar='METHODS', type=str, nargs='+', help='Methods')
-    parser.add_argument('--doom-envs', metavar='DOOM_ENVS', type=str, nargs='+', help='Environments')
+    parser.add_argument('--habitat-envs', metavar='HABITAT_ENVS', type=str, nargs='+', help='Environments')
     parser.add_argument('--params',  metavar='PARAMS', type=str, nargs='+', help='Parameters')
     parser.add_argument('--exp-folder-prefix',  metavar='EXP_FOLDER_PREFIX', type=str, help='Prefix for the output folder', default='eval')
     parser.add_argument('--max-num-procs',  metavar='MAX_NUM_PROCS', type=int, help='Maximum number of evaluation runs to start in parallel', default=5)
     args = parser.parse_args()
-    num_experiments = len(args.doom_envs)*len(args.methods)
+    num_experiments = len(args.habitat_envs)*len(args.methods)
     if len(args.params):
         assert (len(args.params) == num_experiments or len(args.params) == 1), "Number of params should equal to 1 or to the number of envs"
         if len(args.params) == 1:
             args.params *= num_experiments
     print('\nArgs:\n', args, '\n')
     commands = []
-    for ne, (method, doom_env) in enumerate(itertools.product(args.methods,args.doom_envs)):
-        commands.append(make_command(method,doom_env, param_string=args.params[ne], exp_out_folder_prefix='{}_{:02}'.format(args.exp_folder_prefix,ne)))
+    for ne, (method, habitat_env) in enumerate(itertools.product(args.methods,args.habitat_envs)):
+        commands.append(make_command(method,habitat_env, param_string=args.params[ne], exp_out_folder_prefix='{}_{:02}'.format(args.exp_folder_prefix,ne)))
     procs = []
     for command in commands:
         wait_for_free_slot(procs, args.max_num_procs)

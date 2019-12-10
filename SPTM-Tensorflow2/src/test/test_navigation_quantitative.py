@@ -39,28 +39,20 @@ def load_goal_frame_from_lmp(wad, lmp):
   return keyframes[-1], keyframe_coordinates[-1]
 
 def main_exploration(navigator, environment):
-  test_wad = TEST_SETUPS[environment].wad
-  game = test_setup(test_wad)
-  memory_buffer_wad = test_wad
-  memory_buffer_lmp = TEST_SETUPS[environment].memory_buffer_lmp
-  if not os.path.isfile(memory_buffer_lmp):
-    game.set_doom_map(TEST_SETUPS[environment].exploration_map)
-    game.new_episode(memory_buffer_lmp)
-    max_number_of_steps = MAX_NUMBER_OF_STEPS_EXPLORATION
-    navigator.setup_exploration(max_number_of_steps, game, environment, TEST_SETUPS[environment].box)
-    while not navigator.check_termination():
-      print 'completed:', 100 * float(navigator.get_steps()) / float(max_number_of_steps), '%'
-      navigator.policy_explore_step(walkthrough=True)
-    navigator.save_recordings()
-    game.new_episode() # to make it record the data right here
+  game = test_setup()
+  max_number_of_steps = MAX_NUMBER_OF_STEPS_EXPLORATION
+  navigator.setup_exploration(max_number_of_steps, game, environment, TEST_SETUPS[environment].box)
+  while not navigator.check_termination():
+    print('completed:', 100 * float(navigator.get_steps()) / float(max_number_of_steps), '%')
+    navigator.policy_explore_step(walkthrough=True)
+  navigator.save_recordings()
   keyframes, keyframe_coordinates, keyframe_actions = load_memory_buffer_from_lmp(memory_buffer_wad, memory_buffer_lmp, MEMORY_SUBSAMPLING, MEMORY_MAX_FRAMES)
   return keyframes, keyframe_coordinates, keyframe_actions
 
 def main_navigation(navigator, environment, mode, keyframes, keyframe_coordinates, keyframe_actions):
-  print CURRENT_NAVIGATION_ENVIRONMENT, environment
-  print CURRENT_NAVIGATION_MODE, mode
-  test_wad = TEST_SETUPS[environment].wad
-  game = test_setup(test_wad)
+  print(CURRENT_NAVIGATION_ENVIRONMENT, environment)
+  print(CURRENT_NAVIGATION_MODE, mode)
+  game = test_setup()
   results = []
   maps = TEST_SETUPS[environment].maps
   goal_locations = TEST_SETUPS[environment].goal_locations
@@ -75,12 +67,12 @@ def main_navigation(navigator, environment, mode, keyframes, keyframe_coordinate
       raise Exception('Goal incorrectly specified in lmp!')
     goal_frames.append(goal_frame)
   for trial_index in xrange(NUMBER_OF_TRIALS):
-    print 'Trial index:', trial_index
+    print('Trial index:', trial_index)
     for map_index, map_name in enumerate(maps):
-      print 'Map name:', map_name
+      print('Map name:', map_name)
       for goal_index, goal_frame in enumerate(goal_frames):
         goal_name = TEST_SETUPS[environment].goal_names[goal_index]
-        print 'Goal name:', goal_name
+        print('Goal name:', goal_name)
         goal_location = goal_locations[goal_index]
         game.set_doom_map(map_name)
         movie_filename = '%s_%s_%s_%d_%d_%s.mov' % (environment, mode, navigator.exploration_model_directory, trial_index, map_index, goal_name)
@@ -91,11 +83,11 @@ def main_navigation(navigator, environment, mode, keyframes, keyframe_coordinate
         goal_localization_keyframe_index = navigator.setup_navigation_test(max_number_of_steps, game, goal_location, keyframes, keyframe_coordinates, keyframe_actions, goal_frame, movie_filename, TEST_SETUPS[environment].box, environment)
         goal_localization_distance = get_distance(goal_location,
                                                   keyframe_coordinates[goal_localization_keyframe_index])
-        print 'Localization distance:', goal_localization_distance
+        print('Localization distance:', goal_localization_distance)
         if mode == 'explore':
           navigator.show_memory_to_exploration_policy(keyframes)
         while not navigator.check_termination():
-          print 'completed:', 100 * float(navigator.get_steps()) / float(max_number_of_steps), '%'
+          print('completed:', 100 * float(navigator.get_steps()) / float(max_number_of_steps), '%')
           if mode == 'policy':
             navigator.policy_navigation_step()
           elif mode == 'random':
@@ -109,14 +101,14 @@ def main_navigation(navigator, environment, mode, keyframes, keyframe_coordinate
         results.append((navigator.check_goal_reached(),
                         navigator.get_steps(),
                         goal_localization_distance))
-        print results[-1]
+        print(results[-1])
         navigator.save_recordings()
   game.new_episode()
-  print FINAL_RESULTS, results
+  print(FINAL_RESULTS, results)
   number_of_successes = sum([first for first, _, _ in results])
-  print 'Average success:', float(number_of_successes) / float(len(results))
-  print 'Average success path length:', float(sum([first * second for first, second, _ in results])) / float(max(1, number_of_successes))
-  print 'Average goal localization distance:', float(sum(third for _, _, third in results)) / float(len(results))
+  print('Average success:', float(number_of_successes) / float(len(results)))
+  print('Average success path length:', float(sum([first * second for first, second, _ in results])) / float(max(1, number_of_successes)))
+  print('Average goal localization distance:', float(sum(third for _, _, third in results)) / float(len(results)))
 
 if __name__ == '__main__':
   environment, mode = sys.argv[1], sys.argv[2]
@@ -124,12 +116,12 @@ if __name__ == '__main__':
     exploration_model_directory = sys.argv[3]
   else:
     exploration_model_directory = 'none'
-  print EXPLORATION_MODEL_DIRECTORY, exploration_model_directory
+  print(EXPLORATION_MODEL_DIRECTORY, exploration_model_directory)
   navigator = Navigator(exploration_model_directory)
-  print 'Starting exploration!'
+  print('Starting exploration!')
   keyframes, keyframe_coordinates, keyframe_actions = main_exploration(navigator, environment)
-  print 'Memory size:', len(keyframes)
-  print 'Exploration finished!'
-  print 'Starting navigation!'
+  print('Memory size:', len(keyframes)
+  print('Exploration finished!')
+  print('Starting navigation!')
   main_navigation(navigator, environment, mode, keyframes, keyframe_coordinates, keyframe_actions)
-  print 'Navigation finished!'
+  print('Navigation finished!')

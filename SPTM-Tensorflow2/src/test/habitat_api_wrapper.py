@@ -1,4 +1,5 @@
 import habitat
+from common import *
 
 class HabitatWrapper:
 
@@ -10,29 +11,31 @@ class HabitatWrapper:
     self.current_action = None
     self.last_action = None
     self.game_state = GameState(self.env)
-    self.is_episode_finished = False
+    self.episode_finished = False
 
   def reset(self):
-    observations = self.env.reset()
-    self.game_state.update(observations)
-    self.is_episode_finished = self.env.episode_over()
+    observation = self.env.reset()
+    position = self.env.sim.get_agent_state().position
+    self.game_state.update(observation, position)
+    self.episode_finished = self.env.episode_over()
 
   def get_state(self):
     return self.game_state
 
   def set_action(self, action):
-    if action in action_mapping.keys():
+    if action in self.action_mapping.keys():
       self.current_action = action
     else:
-      raise error('Invalid action: %s' % action)
+      raise('Invalid action: %s' % action)
 
   def advance_action(self, tics=1, update=True):
     if update:
       if self.current_action != None:
-        observations = self.env.step(self.action_mapping[self.current_action])
-        self.game_state.update(observations)
+        observation = center_crop_resize(env.step(self.action_mapping[self.current_action])['rgb']/255.0, 256)
+        position = self.env.sim.get_agent_state().position
+        self.game_state.update(observation, position)
         self.last_action = self.current_action
-        self.is_episode_finished = self.env.episode_over()
+        self.episode_finished = self.env.episode_over()
 
   def is_episode_finished(self):
     return self.is_episode_finished
@@ -46,8 +49,6 @@ class HabitatWrapper:
   def new_episode(self):
     raise NotImplementedError
 
-
-
 class GameState:
   def __init__(self, env):
     self.env = env
@@ -55,14 +56,16 @@ class GameState:
     self.number = None
     self.tic = None
     self.game_variables = None
+    self.position = None
     self.screen_buffer = None
     self.depth_buffer = None
     self.labels_buffer = None
     self.automap_buffer = None
     self.labels = None
+    self.goal_position = None
+    self.goal_observation = None
 
-  def update(self, observations):
-    self.screen_buffer = observations['rgb']
-    # TO DO: self.game_state.game_variables = ??
-  
+  def update(self, observations, position):
+    self.screen_buffer = observations['rgb']/255.0
+    self.position = [position[2], position[0]]  
 

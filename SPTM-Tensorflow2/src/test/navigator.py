@@ -10,10 +10,13 @@ def check_if_close(first_point, second_point):
 class Navigator:
   def __init__(self, exploration_model_directory):
     self.exploration_model_directory = exploration_model_directory
-    self.action_model = load_keras_model(3, len(ACTIONS_LIST), ACTION_MODEL_WEIGHTS_PATH)
+    self.action_model = ResNet18(3)
+    self.action_model.build((32, 256, 256, 9))
+    self.action_model.load_weights("../action_model.h5")
+    self.action_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     self.memory = SPTM()
     self.trial_index = -1
-    print 'Navigator ready!'
+    print('Navigator ready!')
 
   def get_screens_and_coordinates(self):
     return self.screens, self.coordinates
@@ -23,9 +26,9 @@ class Navigator:
     self.navigation_video_writer = NavigationVideoWriter(os.path.join(EVALUATION_PATH, movie_path),
                                                          nonstop=True)
 
-  def setup_trajectories(self, trajectories_name, box):
+  def setup_trajectories(self, trajectories_name):
     self.record_trajectories = True
-    self.trajectory_plotter = TrajectoryPlotter(os.path.join(EVALUATION_PATH, trajectories_name), *box)
+    self.trajectory_plotter = TrajectoryPlotter(os.path.join(EVALUATION_PATH, trajectories_name), 0, 0, 0, 0)
 
   def common_setup(self, game):
     self.game = game
@@ -37,12 +40,12 @@ class Navigator:
     self.record_video = False
     self.record_trajectories = False
 
-  def setup_exploration(self, step_budget, game, environment, box):
+  def setup_exploration(self, step_budget, game, environment):
     self.looking_for_goal = False
     self.step_budget = step_budget
     self.common_setup(game)
     # self.setup_video('movie.mov')
-    self.setup_trajectories(environment + '_exploration.pdf', box)
+    self.setup_trajectories(environment + '_exploration.pdf')
     self.goal_frame = None
 
   def setup_navigation_test(self, step_budget, game, goal_location, keyframes, keyframe_coordinates, keyframe_actions, goal_frame, movie_path, box, environment):
@@ -51,8 +54,8 @@ class Navigator:
     self.step_budget = step_budget
     self.common_setup(game)
     self.goal_location = goal_location
-    self.setup_video(movie_path)
-    self.setup_trajectories(movie_path + '.pdf', box)
+    # self.setup_video(movie_path)
+    self.setup_trajectories(movie_path + '.pdf')
     self.keyframes = keyframes[:]
     self.keyframe_coordinates = keyframe_coordinates[:]
     self.keyframe_actions = keyframe_actions[:]
@@ -74,7 +77,7 @@ class Navigator:
     self.memory.set_shortcuts_cache_file(environment)
     self.memory.build_graph(self.keyframes, self.keyframe_coordinates)
     best_index, best_probability = self.memory.set_goal(self.goal_frame, self.goal_location, self.keyframe_coordinates)
-    print 'Goal localization confidence:', best_probability
+    print('Goal localization confidence:', best_probability)
     self.keyframes.append(self.goal_frame)
     self.keyframe_coordinates.append(self.goal_location) #NOTE: these are not the exact goal frame coordinates, but close
     self.memory.compute_shortest_paths(len(self.keyframes) - 1)
@@ -207,7 +210,7 @@ class Navigator:
 
   def check_goal_reached(self):
     if self.looking_for_goal:
-      current_coordinates = self.game.get_state().game_variables
+      current_coordinates = self.game.get_state().position
       return check_if_close(current_coordinates, self.goal_location)
     else:
       return False

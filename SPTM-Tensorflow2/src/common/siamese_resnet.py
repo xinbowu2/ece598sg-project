@@ -60,3 +60,21 @@ class SiameseResnet(tf.keras.Model):
 
 		x = self.fc5(x)        
 		return x
+
+
+def build_bottom_network(edge_model, input_shape):
+	channels, height, width = input_shape
+	input = Input(shape=(height, width, channels))
+	branch = edge_model.layers[3]
+	output = branch(input)
+	if NORMALIZATION_ON:
+		output = Lambda(lambda x: K.l2_normalize(x, axis=1))(output) 
+	return Model(inputs=input, outputs=output)
+
+def build_top_network(edge_model):
+	number_of_top_layers = 3 + TOP_HIDDEN * 3
+	input = Input(shape=(2 * NUM_EMBEDDING,))
+	output = edge_model.layers[-number_of_top_layers](input) #_top_network(input)
+	for index in xrange(-number_of_top_layers + 1, 0):
+		output = edge_model.layers[index](output)
+	return Model(inputs=input, outputs=output)

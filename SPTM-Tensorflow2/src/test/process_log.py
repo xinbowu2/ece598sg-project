@@ -65,7 +65,7 @@ def add_to_plots(plots, input):
   environment, mode, result = input
   steps = []
   success_rate = float(sum([value for value, _, _ in result])) / float(len(result))
-  print environment, mode, success_rate
+  print(environment, mode, success_rate)
   for success, length, _ in result:
     if success:
       steps.append(length)
@@ -96,7 +96,7 @@ def add_to_plots(plots, input):
     plt.ylabel('Success rate', fontsize=AXIS_LABEL_FONT)
   plt.axis([0, FAIL_STEPS, 0, 1.0 * SUCCESS_SCALING])
   plt.grid(linestyle='dotted')
-  print ENVIRONMENT_TO_PAPER_TITLE[environment]
+  print(ENVIRONMENT_TO_PAPER_TITLE[environment])
   if ENVIRONMENT_TO_PAPER_TITLE[environment] in ['Val-3']:
     leg = plt.legend(shadow=True, fontsize=LEGEND_FONT, loc='upper left', fancybox=True, framealpha=1.0)
     for legobj in leg.legendHandles:
@@ -116,9 +116,9 @@ def main_process_log(log_file):
   results = [eval(result) for result in results]
   for index, mode in enumerate(modes):
     modes[index] += '_' + exploration_models[index]
-  print modes
+  print(modes)
   plots = {}
-  print environments, modes
+  print(environments, modes)
   for triplet in zip(environments, modes, results):
     add_to_plots(plots, triplet)
   for environment, (figure, axes) in plots.iteritems():
