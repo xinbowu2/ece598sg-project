@@ -49,7 +49,7 @@ def generate_trajectory(actions):
     images = []
     positions = []
 
-    trajectory_directory = 'trajectories/smt/Adrian'
+    trajectory_directory = 'trajectories/smt/Adrian/'
 
     config = habitat.get_config(config_file='datasets/pointnav/gibson.yaml')
     config.defrost()
@@ -88,7 +88,6 @@ def generate_trajectory(actions):
 
 if __name__ == '__main__':
     print("HELLOOOO")
-    trajectory_dir = 'trajectories/Adrian'
 
     actions = [1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 2, 0, 1, 0, 1, 0, 2, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 2, 1, 1, 0, 0, 1, 0, 2, 2, 0, 2, 1, 1, 2, 1, 2, 1, 1, 0, 0, 0, 2, 2, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 2, 0, 0, 0, 1, 2, 0, 0, 1, 0, 2, 2, 0, 1, 0, 0, 1, 1, 2, 2, 1, 0, 0, 2, 1, 1, 1, 1, 2, 0]
 
