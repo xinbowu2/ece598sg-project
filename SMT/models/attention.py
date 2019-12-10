@@ -11,9 +11,9 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
 		self.depth = d_model // self.num_heads
 
-		self.wq = tf.keras.layers.Dense(d_model)
-		self.wk = tf.keras.layers.Dense(d_model)
-		self.wv = tf.keras.layers.Dense(d_model)
+		self.wq = tf.keras.layers.Dense(d_model, activation='relu')
+		self.wk = tf.keras.layers.Dense(d_model, activation='relu')
+		self.wv = tf.keras.layers.Dense(d_model, activation='relu')
 
 		#self.dense = tf.keras.layers.Dense(d_model)
 

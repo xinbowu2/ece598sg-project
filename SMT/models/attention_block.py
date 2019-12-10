@@ -24,7 +24,7 @@ class AttentionBlock(tf.keras.layers.Layer):
     h = self.ln1(tf.nn.relu(tf.keras.layers.add([att, q])))
     output =  self.ln2(tf.keras.layers.add(self.dense(h), h))
     '''
-    att, _ = self.mha(v, k, q, mask)
+    att, att_weights = self.mha(v, k, q, mask)
     att = self.dropout1(att, training=training)
     h = self.ln1(tf.keras.layers.add([att, q]))
 
@@ -32,11 +32,11 @@ class AttentionBlock(tf.keras.layers.Layer):
     ffn_output = self.dropout2(ffn_output, training=training)
     output = self.ln2(tf.keras.layers.add([ffn_output, h]))
 
-    return output
+    return output, att_weights
 
 
 def point_wise_feed_forward_network(d_model, dff):
   return tf.keras.Sequential([
       tf.keras.layers.Dense(dff, activation='relu'),  # (batch_size, seq_len, dff)
-      tf.keras.layers.Dense(d_model)  # (batch_size, seq_len, d_model)
+      tf.keras.layers.Dense(d_model, activation='relu')  # (batch_size, seq_len, d_model)
   ])

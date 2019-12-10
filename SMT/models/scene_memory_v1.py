@@ -4,8 +4,8 @@ import pdb
 import copy
 
 class SceneMemory(tf.keras.Model):
-	def __init__(self, modalities=['rgb', 'pose', 'prev_action'], modality_dim={'rgb':64, 'pose': 16, 'prev_action':16}, downsampling_size=(64,64), 
-	  reduce_factor=4, observation_dim=128, pose_lambda=5.0):
+	def __init__(self, modalities=['rgb', 'prev_action'], modality_dim={'rgb':64, 'prev_action':64}, downsampling_size=(64,64), 
+	  reduce_factor=4, observation_dim=128):
 		super(SceneMemory, self).__init__()
 		self.downsampling_size = downsampling_size
 		self.modalities = modalities
@@ -15,7 +15,6 @@ class SceneMemory(tf.keras.Model):
 		self.embedding_nets = dict()
 		self.memory = []
 		self.obs_embedding = None
-		self.pose_lambda = pose_lambda
 
 		if 'rgb' in modalities:
 			self.embedding_nets['rgb'] = ModifiedResNet18(modality_dim['rgb'], reduce_factor)
@@ -40,8 +39,6 @@ class SceneMemory(tf.keras.Model):
 		for modality in self.modalities:
 			if len(observations[modality].shape) == 3 or len(observations[modality].shape) == 1:
 				observations[modality] = tf.expand_dims(observations[modality], 0)
-			if modality == 'pose':
-				observations[modality] /= self.pose_lambda
 		#print(observations['rgb'].shape)
 		#observations['rgb'] = tf.image.resize(observations['rgb'],
 		#size=self.downsampling_size)
@@ -73,20 +70,18 @@ class SceneMemory(tf.keras.Model):
 
 
 	def _embed(self, observations, timestep, training=False):
+		#print('______________________', timestep)
+		'''
 		temporal_embedding = tf.math.exp(-tf.convert_to_tensor(timestep,dtype=tf.float32))
 		if temporal_embedding.shape[0] == 1:
 			temporal_embedding = tf.expand_dims(temporal_embedding, 0)
 		else:
 			temporal_embedding = tf.reshape(temporal_embedding, [-1,1])
-		
+		'''
 		embeddings = []
 		for modality in self.modalities:
 			if modality == 'rgb':
 				embeddings.append(self.embedding_nets[modality](observations[modality], training))
-			
-			elif modality == 'pose':
-				concat_embedding = tf.concat([observations[modality], temporal_embedding], axis=1)
-				embeddings.append(self.embedding_nets[modality](concat_embedding))
 			else:
 				'''
 				concat_embedding = tf.concat([observations[modality], temporal_embedding], axis=1)
@@ -94,5 +89,5 @@ class SceneMemory(tf.keras.Model):
 				'''
 				embeddings.append(self.embedding_nets[modality](observations[modality]))
 		#pdb.set_trace()
-		#pdb.set_trace()
+
 		return self.fc(tf.concat(embeddings, axis=1))
