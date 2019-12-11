@@ -3,10 +3,10 @@ sys.path.append('..')
 from habitat_api_wrapper import HabitatWrapper
 
 from common import *
-import cv2
+#import cv2
 import numpy as np
 np.random.seed(TEST_RANDOM_SEED)
-import keras
+import tensorflow.keras as keras
 import random
 random.seed(TEST_RANDOM_SEED)
 
@@ -39,7 +39,3 @@ def test_setup():
 
 # limit memory usage
 import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = TEST_MEMORY_FRACTION
-set_session(tf.Session(config=config))

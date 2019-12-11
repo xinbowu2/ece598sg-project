@@ -32,8 +32,8 @@ class InputProcessor:
     self.edge_model.load_weights('../edge_model.h5')
     self.edge_model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     self.siamese = True
-    self.bottom_network = build_bottom_network(self.edge_model, (NET_CHANNELS, NET_HEIGHT, NET_WIDTH))
-    self.top_network = build_top_network(self.edge_model)
+    self.bottom_network = self.edge_model.build_bottom_network((NET_CHANNELS, NET_HEIGHT, NET_WIDTH))
+    self.top_network = self.edge_model.build_top_network()
 
   def preprocess_input(self, input):
     return input
