@@ -36,13 +36,8 @@ def center_crop_resize(image, width):
 def mean(numbers):
   return float(sum(numbers)) / max(len(numbers), 1)
 
-def wait_idle(game, wait_idle_tics=WAIT_IDLE_TICS):
-  if wait_idle_tics > 0:
-    game.make_action(STAY_IDLE, wait_idle_tics)
-
-def game_make_action_wrapper(game, action, repeat):
-  game.make_action(action, repeat)
-  wait_idle(game)
+def game_make_action_wrapper(game, action):
+  game.make_action(action)
   return None
 
 def save_list_of_arrays_to_hdf5(input, prefix):
@@ -66,14 +61,14 @@ class StateRecorder():
     self.screen_buffers = []
 
   def record_buffers(self, state):
-    self.screen_buffers.append(state.screen_buffer.transpose(VIZDOOM_TO_TF))
+    self.screen_buffers.append(state.screen_buffer)
 
   '''records current state, then makes the provided action'''
-  def record(self, action_index, repeat):
+  def record(self, action_index):
     state = self.game.get_state()
     self.record_buffers(state)
     self.game_variables.append(state.game_variables)
-    r = game_make_action_wrapper(self.game, ACTIONS_LIST[action_index], repeat)
+    r = game_make_action_wrapper(self.game, ACTIONS_LIST[action_index])
     self.actions.append(action_index)
     self.rewards.append(r)
 
@@ -101,14 +96,6 @@ def double_upsampling(input):
 
 def color2gray(input):
   return cv2.cvtColor(input, cv2.COLOR_RGB2GRAY)
-
-def doom_navigation_setup(seed, wad):
-  game = DoomGame()
-  game.load_config(DEFAULT_CONFIG)
-  game.set_doom_scenario_path(wad)
-  game.set_seed(seed)
-  game.init()
-  return game
 
 def calculate_distance_angle(start_coordinates, current_coordinates):
   distance = math.sqrt((start_coordinates[0] - current_coordinates[0]) ** 2 +
@@ -178,7 +165,7 @@ class NavigationVideoWriter():
   def close(self):
     self.video_writer.close()
 
-def make_deep_action(current_screen, goal_screen, model, game, repeat, randomized):
+def make_deep_action(current_screen, goal_screen, model, game, randomized):
   x = np.expand_dims(np.concatenate((current_screen,
                                      goal_screen), axis=2), axis=0)
   action_probabilities = np.squeeze(model.predict(x,
@@ -188,13 +175,13 @@ def make_deep_action(current_screen, goal_screen, model, game, repeat, randomize
     action_index = np.random.choice(len(ACTIONS_LIST), p=action_probabilities)
   else:
     action_index = np.argmax(action_probabilities)
-  game_make_action_wrapper(game, ACTIONS_LIST[action_index], repeat)
+  game_make_action_wrapper(game, ACTIONS_LIST[action_index])
   return action_index, action_probabilities, current_screen
 
-def current_make_deep_action(goal_screen, model, game, repeat, randomized):
+def current_make_deep_action(goal_screen, model, game, randomized):
   state = game.get_state()
-  current_screen = state.screen_buffer.transpose(VIZDOOM_TO_TF)
-  return make_deep_action(current_screen, goal_screen, model, game, repeat, randomized)
+  current_screen = state.screen_buffer
+  return make_deep_action(current_screen, goal_screen, model, game, randomized)
 
 def get_deep_prediction(current_screen, goal_screen, model):
   x = np.expand_dims(np.concatenate((current_screen,
@@ -203,21 +190,8 @@ def get_deep_prediction(current_screen, goal_screen, model):
 
 def current_get_deep_prediction(goal_screen, model, game):
   state = game.get_state()
-  current_screen = state.screen_buffer.transpose(VIZDOOM_TO_TF)
+  current_screen = state.screen_buffer
   return get_deep_prediction(current_screen, goal_screen, model)
-
-def explore(game, number_of_actions):
-  is_left = random.random() > 0.5
-  start_moving_straight = random.randint(0, number_of_actions)
-  for counter in xrange(number_of_actions):
-    if counter >= start_moving_straight:
-      action_index = INVERSE_ACTION_NAMES_INDEX['MOVE_FORWARD']
-    else:
-      if is_left:
-        action_index = INVERSE_ACTION_NAMES_INDEX['TURN_LEFT']
-      else:
-        action_index = INVERSE_ACTION_NAMES_INDEX['TURN_RIGHT']
-    game_make_action_wrapper(game, ACTIONS_LIST[action_index], TEST_REPEAT)
 
 def get_distance(first_point, second_point):
   return math.sqrt((first_point[0] - second_point[0]) ** 2 +

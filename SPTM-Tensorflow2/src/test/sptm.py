@@ -27,20 +27,16 @@ def sieve(shortcuts, top_number):
 
 class InputProcessor:
   def __init__(self):
-    self.edge_model = load_keras_model(2, 2, "../edge_model.h5")
     self.edge_model = SiameseResnet(EDGE_CLASSES)
     self.edge_model.build((32, 256, 256, 6))
-    self.edge_model.load_weights(path)
+    self.edge_model.load_weights('../edge_model.h5')
     self.edge_model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     self.siamese = True
     self.bottom_network = build_bottom_network(self.edge_model, (NET_CHANNELS, NET_HEIGHT, NET_WIDTH))
     self.top_network = build_top_network(self.edge_model)
 
   def preprocess_input(self, input):
-    if HIGH_RESOLUTION_VIDEO:
-      return double_downsampling(input)
-    else:
-      return input
+    return input
 
   def set_memory_buffer(self, keyframes):
     keyframes = [self.preprocess_input(keyframe) for keyframe in keyframes]

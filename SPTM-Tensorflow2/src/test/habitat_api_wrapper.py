@@ -14,9 +14,11 @@ class HabitatWrapper:
     self.episode_finished = False
 
   def reset(self):
-    observation = self.env.reset()
+    observations = self.env.reset()
+    self.goal_observation = observations["pointgoal"]
+    self.goal_position = self.env.current_episode.goals[0].position
     position = self.env.sim.get_agent_state().position
-    self.game_state.update(observation, position)
+    self.game_state.update(center_crop_resize(observations['rgb']/255.0, 256), position)
     self.episode_finished = self.env.episode_over()
 
   def get_state(self):
@@ -37,8 +39,15 @@ class HabitatWrapper:
         self.last_action = self.current_action
         self.episode_finished = self.env.episode_over()
 
+  def make_action(self, action):
+    observation = center_crop_resize(env.step(self.action_mapping[action])['rgb']/255.0, 256)
+    position = self.env.sim.get_agent_state().position
+    self.game_state.update(observation, position)
+    self.last_action = self.current_action
+    self.episode_finished = self.env.episode_over()
+
   def is_episode_finished(self):
-    return self.is_episode_finished
+    return self.episode_finished
 
   def get_last_action(self):
     return self.last_action
@@ -62,8 +71,8 @@ class GameState:
     self.labels_buffer = None
     self.automap_buffer = None
     self.labels = None
-    self.goal_position = None
     self.goal_observation = None
+    self.goal_position = None
 
   def update(self, observations, position):
     self.screen_buffer = observations['rgb']/255.0
