@@ -7,9 +7,9 @@ def main_navigation(navigator, environment, mode, keyframes, keyframe_coordinate
   print(CURRENT_NAVIGATION_MODE, mode)
   game = test_setup()
   results = []
-  for trial_index in xrange(NUMBER_OF_TRIALS):
+  for trial_index in range(NUMBER_OF_TRIALS):
     print('Trial index:', trial_index)
-    movie_filename = '%s_%s_%s_%d_%d_%s.mov' % (environment, mode, navigator.exploration_model_directory, trial_index)
+    movie_filename = '%s_%s_%d.mov' % (environment, mode, trial_index)
     
     goal_frame = game.get_state().goal_observation
     goal_location = game.get_state().goal_position
@@ -48,7 +48,7 @@ if __name__ == '__main__':
   environment, mode = sys.argv[1], sys.argv[2]
   navigator = Navigator()
 
-  trajectory_dir = 'trajectories/Adrian'
+  trajectory_dir = '../trajectories/Adrian'
 
   images = []
   image_paths = []

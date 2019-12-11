@@ -6,6 +6,7 @@ import pdb
 NUM_EMBEDDING = 512 #256 #512 #1024 #256 #1024 #256
 TOP_HIDDEN = 4 #1 #4
 NUM_CLASSES = 2
+NORMALIZATION_ON = False #True #False #True
 
 class SiameseResnet(tf.keras.Model):
 

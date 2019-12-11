@@ -29,7 +29,7 @@ class InputProcessor:
   def __init__(self):
     self.edge_model = SiameseResnet(EDGE_CLASSES)
     self.edge_model.build((32, 256, 256, 6))
-    self.edge_model.load_weights('../edge_model.h5')
+    self.edge_model.load_weights('../../experiments/edge/default_experiment/models/model.000050.h5')
     self.edge_model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     self.siamese = True
     self.bottom_network = self.edge_model.build_bottom_network((NET_CHANNELS, NET_HEIGHT, NET_WIDTH))
