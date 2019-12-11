@@ -12,26 +12,32 @@ class SiameseResnet(tf.keras.Model):
 	def __init__(self, num_classes=NUM_CLASSES):
 		super(SiameseResnet, self).__init__()
 		self.res = ResNet18(NUM_EMBEDDING) #512 size embedding of input
+		
+		self.top = tf.keras.Sequential()
+		self.top.add(tf.keras.layers.BatchNormalization())
+		self.top.add(tf.keras.layers.Activation('relu'))
 
-		self.bn = tf.keras.layers.BatchNormalization()
-		
-		self.fc1 = tf.keras.layers.Dense(units=NUM_EMBEDDING,
-										 kernel_initializer='he_normal')
-		self.bn1 = tf.keras.layers.BatchNormalization()
-		
-		self.fc2 = tf.keras.layers.Dense(units=NUM_EMBEDDING,
-										 kernel_initializer='he_normal')
-		self.bn2 = tf.keras.layers.BatchNormalization()
-		
-		self.fc3 = tf.keras.layers.Dense(units=NUM_EMBEDDING,
-										 kernel_initializer='he_normal')
-		self.bn3 = tf.keras.layers.BatchNormalization()
+		self.top.add(tf.keras.layers.Dense(units=NUM_EMBEDDING,
+										 kernel_initializer='he_normal'))
+		self.top.add(tf.keras.layers.BatchNormalization())
+		self.top.add(tf.keras.layers.Activation('relu'))
 
-		self.fc4 = tf.keras.layers.Dense(units=NUM_EMBEDDING,
-										 kernel_initializer='he_normal')
-		self.bn4 = tf.keras.layers.BatchNormalization()
-		
-		self.fc5 = tf.keras.layers.Dense(units=num_classes, activation=tf.keras.activations.softmax, kernel_initializer='he_normal')
+		self.top.add(tf.keras.layers.Dense(units=NUM_EMBEDDING,
+										 kernel_initializer='he_normal'))
+		self.top.add(tf.keras.layers.BatchNormalization())
+		self.top.add(tf.keras.layers.Activation('relu'))
+
+		self.top.add(tf.keras.layers.Dense(units=NUM_EMBEDDING,
+										 kernel_initializer='he_normal'))
+		self.top.add(tf.keras.layers.BatchNormalization())
+		self.top.add(tf.keras.layers.Activation('relu'))
+
+		self.top.add(tf.keras.layers.Dense(units=NUM_EMBEDDING,
+										 kernel_initializer='he_normal'))
+		self.top.add(tf.keras.layers.BatchNormalization())
+		self.top.add(tf.keras.layers.Activation('relu'))
+
+		self.top.add(tf.keras.layers.Dense(units=num_classes, activation=tf.keras.activations.softmax, kernel_initializer='he_normal'))
 
 	def call(self, inputs, training=None, mask=None):
 		first_branch = self.res(inputs[:,:,:,:3]) #embedding for first observation
@@ -39,42 +45,20 @@ class SiameseResnet(tf.keras.Model):
 
 		raw_result = tf.concat([first_branch, second_branch], axis=1)
 
-		x = self.bn(raw_result)
-		x = tf.nn.relu(x)
-
-		x = self.fc1(x)
-		x = self.bn1(x)
-		x = tf.nn.relu(x)
-
-		x = self.fc2(x)
-		x = self.bn2(x)
-		x = tf.nn.relu(x)
-
-		x = self.fc3(x)
-		x = self.bn3(x)
-		x = tf.nn.relu(x)
-
-		x = self.fc4(x)
-		x = self.bn4(x)
-		x = tf.nn.relu(x)
-
-		x = self.fc5(x)        
+		x = self.top(raw_result)     
 		return x
 
 
 	def build_bottom_network(self, input_shape):
 		channels, height, width = input_shape
 		input = tf.keras.layers.Input(shape=(height, width, channels))
-		branch = self.layers[3]
+		branch = self.res
 		output = branch(input)
 		if NORMALIZATION_ON:
-			output = tf.keras.layers.Lambda(lambda x: K.l2_normalize(x, axis=1))(output) 
+			output = tf.keras.layers.Lambda(lambda x: tf.keras.backend.l2_normalize(x, axis=1))(output) 
 		return tf.keras.Model(inputs=input, outputs=output)
 
 	def build_top_network(self):
-		number_of_top_layers = 3 + TOP_HIDDEN * 3
 		input = tf.keras.layers.Input(shape=(2 * NUM_EMBEDDING,))
-		output = self.layers[-number_of_top_layers](input) #_top_network(input)
-		for index in xrange(-number_of_top_layers + 1, 0):
-			output = self.layers[index](output)
+		output = self.top(input)
 		return tf.keras.Model(inputs=input, outputs=output)
