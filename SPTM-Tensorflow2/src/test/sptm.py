@@ -1,6 +1,6 @@
 from test_setup import *
 import os.path
-
+import pdb
 from numpy import mean
 from numpy import median
 import networkx as nx
@@ -41,6 +41,7 @@ class InputProcessor:
   def set_memory_buffer(self, keyframes):
     keyframes = [self.preprocess_input(keyframe) for keyframe in keyframes]
   
+    pdb.set_trace()
     memory_codes = self.bottom_network.predict(np.array(keyframes))
     list_to_predict = []
     for index in xrange(len(keyframes)):
@@ -52,6 +53,7 @@ class InputProcessor:
     keyframe = self.preprocess_input(keyframe)
 
     memory_code = self.bottom_network.predict(expanded_keyframe)
+    print(memory_code)
     x = np.concatenate((memory_code, memory_code), axis=1)
     self.tensor_to_predict = np.concatenate((self.tensor_to_predict, x), axis=0)
 

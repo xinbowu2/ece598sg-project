@@ -12,5 +12,5 @@ do
   echo "" >> params.out
 done
   
-python2 process_log.py tmp.out > table_results.txt
+python process_log.py tmp.out > table_results.txt
 rm tmp.out
