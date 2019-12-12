@@ -5,7 +5,7 @@ import matplotlib.image as mpimg
 import glob
 import numpy as np
 from common import *
-#import cv2
+# import cv2
 import habitat
 
 print("IMPORTS COMPLETE")
@@ -31,8 +31,8 @@ def plot_path(positions):
 	fig = plt.figure()
 	plt.plot(*positions.T, 'b-')
 	# plt.plot([positions[index1,0], positions[index2,0]], [positions[index1,1], positions[index2,1]],'r-')
-	# plt.annotate("Start", positions[index1], textcoords="offset points", xytext=(0,10), ha='center')
-	# plt.annotate("End", positions[index2], textcoords="offset points", xytext=(0,10), ha='center')
+	plt.annotate("Start", positions[0], textcoords="offset points", xytext=(0,10), ha='center')
+	plt.annotate("End", positions[-1], textcoords="offset points", xytext=(0,10), ha='center')
 	plt.show()
 	fig.savefig('trajectory_plot.png')
 
@@ -82,6 +82,7 @@ def generate_trajectory(trajectory_directory, actions):
     print("Episode finished after {} steps.".format(count_steps))	
 
     positions = np.array(positions)
+    positions.dump(open(trajectory_directory+'positions.npy', 'wb'))
     return images, np.array([positions[:,2], positions[:,0]]).T
 
 if __name__ == '__main__':
@@ -92,13 +93,15 @@ if __name__ == '__main__':
 
     images, positions = generate_trajectory(trajectory_directory, actions)
 
+    # positions = np.load(trajectory_dir + '/positions.npy', allow_pickle=True)[:-1]
+    # positions = np.array([positions[:,2], positions[:,0]]).T
     plot_path(positions)
 
-    #images = []
-    #image_paths = []
-    #for im_path in glob.glob(trajectory_directory + "/images/*.png"):
+    # images = []
+    # image_paths = []
+    # for im_path in glob.glob(trajectory_directory + "/images/*.png"):
     #    image_paths.append(im_path)
-    #image_paths.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
-    #images = [cv2.imread(x) for x in image_paths][:-1]
+    # image_paths.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
+    # images = [cv2.imread(x) for x in image_paths][:-1]
 
-    #create_video(images)
+    # create_video(images)
