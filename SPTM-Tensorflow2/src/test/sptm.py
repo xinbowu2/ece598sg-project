@@ -42,7 +42,7 @@ class InputProcessor:
     keyframes = [self.preprocess_input(keyframe) for keyframe in keyframes]
   
     pdb.set_trace()
-    memory_codes = self.bottom_network.predict(np.array(keyframes))
+    memory_codes = self.bottom_network.predict(np.array(keyframes), batch_size=128)
     list_to_predict = []
     for index in xrange(len(keyframes)):
       x = np.concatenate((memory_codes[0], memory_codes[index]), axis=0)
@@ -52,7 +52,7 @@ class InputProcessor:
   def append_to_memory_buffer(self, keyframe):
     keyframe = self.preprocess_input(keyframe)
 
-    memory_code = self.bottom_network.predict(expanded_keyframe)
+    memory_code = self.bottom_network.predict(expanded_keyframe, batch_size=128)
     print(memory_code)
     x = np.concatenate((memory_code, memory_code), axis=1)
     self.tensor_to_predict = np.concatenate((self.tensor_to_predict, x), axis=0)

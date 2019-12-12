@@ -4,10 +4,9 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import glob
 import numpy as np
-# from common import *
-import cv2
-import glob
-# import habitat
+from common import *
+#import cv2
+import habitat
 
 print("IMPORTS COMPLETE")
 
@@ -89,17 +88,17 @@ if __name__ == '__main__':
     print("HELLOOOO")
     trajectory_directory = 'trajectories/smt/Adrian/'
 
-    actions = [1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 2, 0, 1, 0, 1, 0, 2, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 2, 1, 1, 0, 0, 1, 0, 2, 2, 0, 2, 1, 1, 2, 1, 2, 1, 1, 0, 0, 0, 2, 2, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 2, 0, 0, 0, 1, 2, 0, 0, 1, 0, 2, 2, 0, 1, 0, 0, 1, 1, 2, 2, 1, 0, 0, 2, 1, 1, 1, 1, 2, 0]
+    actions = [1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 2, 1, 1, 1, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0, 0, 2, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 2, 2, 1, 0, 2, 1, 1, 2, 2, 1, 0, 0, 2, 2, 1, 1, 1, 2, 0]
 
-    # images, positions = generate_trajectory(actions)
+    images, positions = generate_trajectory(trajectory_directory, actions)
 
-    # plot_path(trajectory_directory, positions)
+    plot_path(positions)
 
-    images = []
-    image_paths = []
-    for im_path in glob.glob(trajectory_directory + "/images/*.png"):
-        image_paths.append(im_path)
-    image_paths.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
-    images = [cv2.imread(x) for x in image_paths][:-1]
+    #images = []
+    #image_paths = []
+    #for im_path in glob.glob(trajectory_directory + "/images/*.png"):
+    #    image_paths.append(im_path)
+    #image_paths.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
+    #images = [cv2.imread(x) for x in image_paths][:-1]
 
-    create_video(images)
+    #create_video(images)
